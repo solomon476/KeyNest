@@ -20,6 +20,27 @@ export default function TenantDashboard({ onLogout }) {
     }
   };
 
+  const handlePayment = async (e) => {
+    e.preventDefault();
+    try {
+      alert('Initiating M-Pesa STK Push to your phone...');
+      const res = await fetch('/_/backend/api/mpesa/stkpush', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          phoneNumber: '254712345678', // Replace with dynamic tenant phone number
+          amount: 25000, 
+          accountReference: 'Apt 4B Rent' 
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Payment failed');
+      alert('STK Push sent! Please enter your M-Pesa PIN on your phone.');
+    } catch (err) {
+      alert('Error: ' + err.message + '. (Note: Ensure Daraja API keys are set in .env)');
+    }
+  };
+
   const handleLogout = (e) => {
     e.preventDefault();
     if(onLogout) onLogout();
@@ -82,7 +103,7 @@ export default function TenantDashboard({ onLogout }) {
                     <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--status-overdue)', margin: '0.5rem 0' }}>KES 25,000</div>
                     <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Due by Oct 5th, 2026</div>
                   </div>
-                  <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1rem', backgroundColor: '#10B981' }} onClick={(e) => handleAction(e, 'M-Pesa Payment')}>
+                  <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1rem', backgroundColor: '#10B981' }} onClick={handlePayment}>
                     Pay Now with M-Pesa
                   </button>
                 </div>

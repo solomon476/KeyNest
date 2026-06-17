@@ -12,6 +12,7 @@ const leaseRoutes = require('./routes/leaseRoutes');
 const maintenanceRoutes = require('./routes/maintenanceRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const aiRoutes = require('./routes/aiRoutes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/leases', leaseRoutes);
 app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

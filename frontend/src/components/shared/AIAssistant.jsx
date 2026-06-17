@@ -8,7 +8,7 @@ export default function AIAssistant() {
   ]);
   const [input, setInput] = useState('');
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
@@ -17,19 +17,18 @@ export default function AIAssistant() {
     setMessages(newMessages);
     setInput('');
 
-    // Simulate AI response
-    setTimeout(() => {
-      let aiResponse = "I'm currently in demo mode, but in the future, I'll be able to perform advanced actions directly on your properties and tenants!";
+    try {
+      const res = await fetch('/_/backend/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: input, role: 'Landlord' }) // Hardcoded role for now
+      });
+      const data = await res.json();
       
-      const lowerInput = input.toLowerCase();
-      if (lowerInput.includes('reminder') || lowerInput.includes('late')) {
-        aiResponse = "Here is a draft you can send to John Doe (Apt 4B): 'Dear John, this is a friendly reminder that your rent of KES 25,000 for this month is currently overdue. Please arrange payment at your earliest convenience. Thank you!'";
-      } else if (lowerInput.includes('maintenance') || lowerInput.includes('leak')) {
-        aiResponse = "I've analyzed the recent maintenance request. I've categorized it as 'Plumbing - High Priority' and assigned it to your Caretaker, Michael. The estimated repair cost is KES 2,500 based on historical data.";
-      }
-
-      setMessages(prev => [...prev, { role: 'ai', text: aiResponse }]);
-    }, 1000);
+      setMessages(prev => [...prev, { role: 'ai', text: data.text || data.error }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'ai', text: 'Sorry, I am having trouble connecting to my brain right now.' }]);
+    }
   };
 
   return (
