@@ -1,15 +1,24 @@
 {
   "name": "keynest",
-  "experimentalServices": {
-    "frontend": {
-      "root": "frontend",
-      "routePrefix": "/",
-      "framework": "vite"
+  "rewrites": [
+    {
+      "source": "/_/backend/api/(.*)",
+      "destination": "/backend/server.js"
     },
-    "backend": {
-      "root": "backend",
-      "entrypoint": "server.js",
-      "routePrefix": "/_/backend"
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/dist/index.html"
     }
-  }
+  ],
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    {
+      "src": "backend/server.js",
+      "use": "@vercel/node"
+    }
+  ]
 }
