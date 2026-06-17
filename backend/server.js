@@ -43,6 +43,19 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', message: 'KeyNest Backend is running' });
 });
 
+// Debug: check which env vars are available (remove after debugging)
+app.get('/api/debug-env', (req, res) => {
+    res.status(200).json({
+        hasPostgresUrl: !!process.env.POSTGRES_URL,
+        postgresUrlPrefix: process.env.POSTGRES_URL ? process.env.POSTGRES_URL.substring(0, 20) + '...' : 'NOT SET',
+        hasDatabaseUrl: !!process.env.DATABASE_URL,
+        databaseUrlPrefix: process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'NOT SET',
+        hasJwtSecret: !!process.env.JWT_SECRET,
+        nodeEnv: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL_ENV,
+    });
+});
+
 // Export the app for Vercel Serverless Functions
 module.exports = app;
 
