@@ -23,11 +23,15 @@ export default function Login({ onLogin }) {
     return () => clearInterval(timer);
   }, []);
 
-  const handleDemoLogin = (e) => {
+  const handleDemoLogin = (e, role) => {
     e.preventDefault();
+    if (!email) {
+       alert("Please enter your credentials first");
+       return;
+    }
     // Simulate authentication based on selected role
-    onLogin({ role: selectedRole, name: `Demo ${selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}` });
-    navigate(`/${selectedRole}`);
+    onLogin({ role: role, name: `Demo ${role.charAt(0).toUpperCase() + role.slice(1)}` });
+    navigate(`/${role}`);
   };
 
   return (
@@ -80,54 +84,15 @@ export default function Login({ onLogin }) {
           <p style={{ color: '#64748B', marginTop: '0.5rem' }}>Your complete rental management system</p>
         </div>
 
-        {!selectedRole ? (
-          <div>
-            <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#334155', marginBottom: '1.5rem', textAlign: 'center' }}>
-              Select your role to continue:
-            </h2>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <button 
-                onClick={() => setSelectedRole('landlord')}
-                className="btn btn-outline" 
-                style={{ padding: '1rem', justifyContent: 'flex-start', fontSize: '1.05rem', backgroundColor: '#fff' }}>
-                <Shield size={24} color="#2563EB" style={{ marginRight: '0.75rem' }} /> I am a Landlord
-              </button>
-              <button 
-                onClick={() => setSelectedRole('caretaker')}
-                className="btn btn-outline" 
-                style={{ padding: '1rem', justifyContent: 'flex-start', fontSize: '1.05rem', backgroundColor: '#fff' }}>
-                <Building2 size={24} color="#10B981" style={{ marginRight: '0.75rem' }} /> I am a Caretaker
-              </button>
-              <button 
-                onClick={() => setSelectedRole('tenant')}
-                className="btn btn-outline" 
-                style={{ padding: '1rem', justifyContent: 'flex-start', fontSize: '1.05rem', backgroundColor: '#fff' }}>
-                <UserCircle size={24} color="#F59E0B" style={{ marginRight: '0.75rem' }} /> I am a Tenant
-              </button>
-            </div>
-          </div>
-        ) : (
-          <form onSubmit={handleDemoLogin} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }}>
-              <button 
-                type="button" 
-                onClick={() => setSelectedRole(null)} 
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#64748B', fontWeight: 500, padding: 0 }}
-              >
-                <ArrowLeft size={18} style={{ marginRight: '0.25rem' }} /> Back
-              </button>
-              <span style={{ marginLeft: 'auto', fontWeight: 600, color: '#0F172A', textTransform: 'capitalize' }}>
-                {selectedRole} Login
-              </span>
-            </div>
-
+        <div>
+          <form style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#334155', marginBottom: '0.5rem' }}>Email or Phone</label>
               <input 
                 type="text" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. 0712345678" 
+                placeholder="e.g. 0712345678 or landlord@keynest.com" 
                 style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none' }} 
               />
             </div>
@@ -141,11 +106,34 @@ export default function Login({ onLogin }) {
                 style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #E2E8F0', outline: 'none' }} 
               />
             </div>
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '0.875rem' }}>
-              Sign In
-            </button>
           </form>
-        )}
+
+          <div style={{ marginTop: '2rem' }}>
+            <h2 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#64748B', marginBottom: '1rem', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Sign In As
+            </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <button 
+                onClick={(e) => { setSelectedRole('landlord'); handleDemoLogin(e, 'landlord'); }}
+                className="btn btn-outline" 
+                style={{ padding: '0.875rem', justifyContent: 'center', fontSize: '1rem', backgroundColor: '#fff', width: '100%', borderColor: '#2563EB', color: '#2563EB' }}>
+                <Shield size={20} style={{ marginRight: '0.5rem' }} /> Landlord
+              </button>
+              <button 
+                onClick={(e) => { setSelectedRole('caretaker'); handleDemoLogin(e, 'caretaker'); }}
+                className="btn btn-outline" 
+                style={{ padding: '0.875rem', justifyContent: 'center', fontSize: '1rem', backgroundColor: '#fff', width: '100%', borderColor: '#10B981', color: '#10B981' }}>
+                <Building2 size={20} style={{ marginRight: '0.5rem' }} /> Caretaker
+              </button>
+              <button 
+                onClick={(e) => { setSelectedRole('tenant'); handleDemoLogin(e, 'tenant'); }}
+                className="btn btn-outline" 
+                style={{ padding: '0.875rem', justifyContent: 'center', fontSize: '1rem', backgroundColor: '#fff', width: '100%', borderColor: '#F59E0B', color: '#F59E0B' }}>
+                <UserCircle size={20} style={{ marginRight: '0.5rem' }} /> Tenant
+              </button>
+            </div>
+          </div>
+        </div>
 
       </div>
     </div>

@@ -32,6 +32,8 @@ export default function CaretakerDashboard({ onLogout }) {
 
   return (
     <div className="app-container">
+      <div className={`mobile-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)}></div>
+      
       {/* Sidebar Navigation */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', marginBottom: '2.5rem', padding: '0.25rem 0' }}>
@@ -52,10 +54,13 @@ export default function CaretakerDashboard({ onLogout }) {
 
       {/* Main Content Area */}
       <main className="main-content">
-        <header className="header" style={{ justifyContent: 'space-between' }}>
-          <button className="btn btn-outline" onClick={() => setSidebarOpen(!sidebarOpen)} style={{ padding: '0.5rem', border: 'none' }}>
-            <Menu size={24} />
-          </button>
+        <header className="header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button className="menu-btn" onClick={() => setSidebarOpen(true)}>
+              <Menu size={24} />
+            </button>
+            <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1E293B' }}>Caretaker Portal</div>
+          </div>
           
           <div className="flex items-center gap-6">
             <Bell size={24} color="#64748B" />

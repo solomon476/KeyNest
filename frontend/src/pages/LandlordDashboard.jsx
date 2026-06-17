@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Home, Building2, Users, CreditCard, 
   Wrench, BarChart3, Settings, Menu, 
@@ -10,6 +10,7 @@ import Properties from '../components/landlord/Properties';
 import Tenants from '../components/landlord/Tenants';
 import MaintenanceTasks from '../components/landlord/MaintenanceTasks';
 import Payments from '../components/shared/Payments';
+import AIAssistant from '../components/shared/AIAssistant';
 
 const MOCK_STATS = [
   { title: 'Total Rent Collected', value: 'KES 450,000', icon: CreditCard, accent: true },
@@ -47,6 +48,8 @@ function LandlordDashboard({ onLogout }) {
 
   return (
     <div className="app-container">
+      <div className={`mobile-overlay ${sidebarOpen ? 'open' : ''}`} onClick={() => setSidebarOpen(false)}></div>
+      
       {/* Sidebar Navigation */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-brand" style={{ display: 'flex', alignItems: 'center', marginBottom: '2.5rem', padding: '0.25rem 0' }}>
@@ -72,12 +75,8 @@ function LandlordDashboard({ onLogout }) {
       <main className="main-content">
         {/* Top Header */}
         <header className="header">
-          <div className="flex items-center gap-4">
-            <button 
-              className="btn btn-outline" 
-              style={{ padding: '0.5rem', border: 'none' }}
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button className="menu-btn" onClick={() => setSidebarOpen(true)}>
               <Menu size={24} />
             </button>
             <div className="search-bar flex items-center gap-2" style={{ backgroundColor: '#F1F5F9', padding: '0.5rem 1rem', borderRadius: '99px', width: '300px' }}>
@@ -183,6 +182,8 @@ function LandlordDashboard({ onLogout }) {
           )}
         </div>
       </main>
+
+      <AIAssistant />
     </div>
   );
 }
