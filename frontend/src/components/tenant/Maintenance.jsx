@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Wrench, Plus, CheckCircle, Clock } from 'lucide-react';
-import api from '../../../services/api';
+import api from '../../services/api';
 
 export default function Maintenance() {
   const [requests, setRequests] = useState([]);

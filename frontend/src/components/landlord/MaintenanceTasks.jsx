@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle, Wrench } from 'lucide-react';
-import api from '../../../services/api';
+import api from '../../services/api';
 
 export default function MaintenanceTasks() {
   const [tasks, setTasks] = useState([]);

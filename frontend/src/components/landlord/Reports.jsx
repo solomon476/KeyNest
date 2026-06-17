@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, PieChart, TrendingUp, Download } from 'lucide-react';
-import api from '../../../services/api';
+import api from '../../services/api';
 
 export default function Reports() {
   const [loading, setLoading] = useState(false); // Can be set to true if fetching real data later

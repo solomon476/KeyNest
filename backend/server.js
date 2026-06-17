@@ -41,7 +41,13 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK', message: 'KeyNest Backend is running' });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Backend server started on port ${PORT}`);
-});
+// Export the app for Vercel Serverless Functions
+module.exports = app;
+
+// Only listen if not running on Vercel
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Backend server started on port ${PORT}`);
+    });
+}
