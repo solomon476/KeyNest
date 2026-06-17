@@ -60,3 +60,32 @@ exports.createLease = async (req, res) => {
         res.status(500).json({ error: 'Failed to create lease' });
     }
 };
+
+// Get my active lease (for tenant)
+exports.getMyLease = async (req, res) => {
+    try {
+        const tenantId = req.user?.id;
+        if (!tenantId) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+        
+        const query = `
+            SELECT l.*, u.unit_number, u.unit_type, p.name as property_name
+            FROM leases l
+            JOIN units u ON l.unit_id = u.id
+            JOIN properties p ON u.property_id = p.id
+            WHERE l.tenant_id = $1 AND l.status = 'active'
+            LIMIT 1
+        `;
+        const result = await db.query(query, [tenantId]);
+        
+        if (result.rows && result.rows.length > 0) {
+            res.status(200).json(result.rows[0]);
+        } else {
+            res.status(404).json({ error: 'No active lease found' });
+        }
+    } catch (error) {
+        console.error('Error fetching my lease:', error);
+        res.status(500).json({ error: 'Failed to fetch lease details' });
+    }
+};

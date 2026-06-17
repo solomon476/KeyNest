@@ -92,7 +92,36 @@ exports.callback = async (req, res) => {
         });
 
         console.log(`Success: KES ${amountPaid} from ${phoneNumber}. Ref: ${mpesaReceiptNumber}`);
-        // TODO: Update database status using db.query()
+        
+        try {
+            // Find tenant by phone number to get their active lease
+            // Note: Safaricom phone numbers come as 2547XXXXXXXX
+            let formattedPhone = phoneNumber.toString();
+            if (formattedPhone.startsWith('254')) {
+                formattedPhone = '0' + formattedPhone.substring(3);
+            }
+            
+            const leaseQuery = `
+                SELECT l.id as lease_id 
+                FROM leases l
+                JOIN tenants t ON l.tenant_id = t.id
+                WHERE (t.phone_number = $1 OR t.phone_number = $2) AND l.status = 'active'
+                LIMIT 1
+            `;
+            const leaseResult = await db.query(leaseQuery, [phoneNumber.toString(), formattedPhone]);
+            const leaseId = leaseResult.rows?.[0]?.lease_id || null;
+
+            // Insert payment record
+            const paymentQuery = `
+                INSERT INTO payments (lease_id, amount, payment_method, mpesa_receipt_number, status)
+                VALUES ($1, $2, 'm-pesa', $3, 'completed')
+            `;
+            await db.query(paymentQuery, [leaseId, amountPaid, mpesaReceiptNumber]);
+            console.log('Payment recorded successfully in DB');
+
+        } catch (dbErr) {
+            console.error('Error saving payment to DB:', dbErr);
+        }
         
     } else {
         console.log(`Failed: CheckoutRequestID ${checkoutRequestID}. Reason: ${callbackData.ResultDesc}`);

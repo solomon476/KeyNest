@@ -12,7 +12,8 @@ export default function Payments() {
   const fetchPayments = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const res = await api.get(`/payments?landlordId=${user.id || 1}`);
+      const queryParam = user.role === 'tenant' ? `tenantId=${user.id}` : `landlordId=${user.id || 1}`;
+      const res = await api.get(`/payments?${queryParam}`);
       setPayments(res.data);
     } catch (err) {
       console.error(err);

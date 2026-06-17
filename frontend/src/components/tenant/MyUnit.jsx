@@ -1,7 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Home, FileText, Calendar, CreditCard } from 'lucide-react';
+import api from '../../services/api';
 
 export default function MyUnit() {
+  const [lease, setLease] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchMyLease();
+  }, []);
+
+  const fetchMyLease = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/leases/my-lease');
+      setLease(res.data);
+    } catch (err) {
+      if (err.response?.status === 404) {
+        setError('No active lease found. Please contact your landlord.');
+      } else {
+        setError('Failed to load unit details.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div style={{ padding: '2rem' }}>Loading unit details...</div>;
+
+  if (error || !lease) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#FEE2E2', borderRadius: '8px', color: '#B91C1C' }}>
+        {error || 'No active lease found.'}
+      </div>
+    );
+  }
+
   return (
     <div>
       <div style={{ marginBottom: '2rem' }}>
@@ -16,19 +51,19 @@ export default function MyUnit() {
               <Home color="#4F46E5" size={24} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Apt 4B</h2>
-              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>Greenways Apartments</div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>{lease.unit_number || 'Unknown Unit'}</h2>
+              <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>{lease.property_name || 'Unknown Property'}</div>
             </div>
           </div>
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#64748B' }}>Unit Type</span>
-              <span style={{ fontWeight: 500 }}>2 Bedroom</span>
+              <span style={{ fontWeight: 500 }}>{lease.unit_type || 'N/A'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#64748B' }}>Monthly Rent</span>
-              <span style={{ fontWeight: 500 }}>KES 25,000</span>
+              <span style={{ fontWeight: 500 }}>KES {lease.rent_amount || '0'}</span>
             </div>
           </div>
         </div>
@@ -40,15 +75,15 @@ export default function MyUnit() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#64748B' }}><Calendar size={14} style={{display:'inline', marginRight: 4}}/> Start Date</span>
-              <span style={{ fontWeight: 500 }}>Jan 1, 2026</span>
+              <span style={{ fontWeight: 500 }}>{new Date(lease.start_date).toLocaleDateString()}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#64748B' }}><Calendar size={14} style={{display:'inline', marginRight: 4}}/> End Date</span>
-              <span style={{ fontWeight: 500 }}>Dec 31, 2026</span>
+              <span style={{ fontWeight: 500 }}>{lease.end_date ? new Date(lease.end_date).toLocaleDateString() : 'N/A'}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ color: '#64748B' }}><CreditCard size={14} style={{display:'inline', marginRight: 4}}/> Deposit Paid</span>
-              <span style={{ fontWeight: 500 }}>KES 25,000</span>
+              <span style={{ fontWeight: 500 }}>KES {lease.deposit_amount || '0'}</span>
             </div>
             <div style={{ marginTop: '1rem' }}>
                <button className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }}>Download Lease PDF</button>

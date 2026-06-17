@@ -3,6 +3,7 @@ const router = express.Router();
 const leaseController = require('../controllers/leaseController');
 
 router.get('/', leaseController.getLeases);
+router.get('/my-lease', leaseController.getMyLease);
 router.post('/', leaseController.createLease);
 
 module.exports = router;

@@ -1,9 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, PieChart, TrendingUp, Download } from 'lucide-react';
+import { TrendingUp, PieChart as PieChartIcon, Download, BarChart as BarChartIcon } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import api from '../../services/api';
 
+const COLORS = ['#10B981', '#EF4444', '#F59E0B', '#3B82F6'];
+
 export default function Reports() {
-  const [loading, setLoading] = useState(false); // Can be set to true if fetching real data later
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const res = await api.get(`/dashboard/stats?landlordId=${user.id || 1}`);
+      setStats(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) return <div style={{ padding: '2rem' }}>Loading reports...</div>;
+
+  const occupancyData = [
+    { name: 'Occupied', value: stats?.occupancyRate || 0 },
+    { name: 'Vacant', value: 100 - (stats?.occupancyRate || 0) },
+  ];
+
+  const collectionData = [
+    { name: 'Collected', amount: stats?.totalRentCollected || 0 },
+    { name: 'Pending', amount: stats?.pendingBalances || 0 },
+  ];
 
   return (
     <div>
@@ -20,29 +52,56 @@ export default function Reports() {
       <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', marginBottom: '2rem' }}>
         <div className="card">
           <h3 style={{ fontWeight: 600, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <TrendingUp size={20} color="#2563EB" /> Revenue Overview
+            <TrendingUp size={20} color="#2563EB" /> Revenue & Balances
           </h3>
-          <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
-            <p style={{ color: '#64748B' }}>Revenue Chart Visualization Coming Soon</p>
+          <div style={{ height: '250px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={collectionData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip formatter={(value) => `KES ${value.toLocaleString()}`} />
+                <Bar dataKey="amount" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
         <div className="card">
           <h3 style={{ fontWeight: 600, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <PieChart size={20} color="#10B981" /> Occupancy Rates
+            <PieChartIcon size={20} color="#10B981" /> Occupancy Rates
           </h3>
-          <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
-            <p style={{ color: '#64748B' }}>Occupancy Chart Visualization Coming Soon</p>
+          <div style={{ height: '250px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={occupancyData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  dataKey="value"
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                >
+                  {occupancyData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
       
       <div className="card">
         <h3 style={{ fontWeight: 600, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <BarChart size={20} color="#F59E0B" /> Collection Efficiency
+          <BarChartIcon size={20} color="#F59E0B" /> Collection Efficiency
         </h3>
         <div style={{ height: '250px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px dashed #CBD5E1' }}>
-          <p style={{ color: '#64748B' }}>Collection Efficiency Bar Chart Coming Soon</p>
+          <p style={{ color: '#64748B' }}>More charts can be added here.</p>
         </div>
       </div>
     </div>

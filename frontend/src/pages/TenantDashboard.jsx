@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Home, CreditCard, Wrench, Menu, LogOut, Bell, CheckCircle } from 'lucide-react';
 import logo from '../assets/logo.png';
@@ -11,7 +11,22 @@ import api from '../services/api';
 export default function TenantDashboard({ onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState('Overview');
+  const [stats, setStats] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchTenantStats();
+  }, []);
+
+  const fetchTenantStats = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const res = await api.get(`/dashboard/tenant-stats?tenantId=${user.id}`);
+      setStats(res.data);
+    } catch (err) {
+      console.error('Failed to fetch tenant stats:', err);
+    }
+  };
 
   const handleAction = (e, feature) => {
     e.preventDefault();
@@ -31,7 +46,7 @@ export default function TenantDashboard({ onLogout }) {
       
       const res = await api.post('/mpesa/stkpush', { 
         phoneNumber, 
-        amount: 25000, 
+        amount: stats?.currentBalance || 25000, 
         accountReference: 'Rent Payment' 
       });
       alert('STK Push sent! Please enter your M-Pesa PIN on your phone.');
@@ -92,7 +107,7 @@ export default function TenantDashboard({ onLogout }) {
             <>
               <div style={{ marginBottom: '2rem' }}>
                 <h1 style={{ fontSize: '1.75rem', fontWeight: 700 }}>Welcome Home</h1>
-                <p style={{ color: 'var(--color-text-muted)' }}>Apt 4B • Greenways Apartments</p>
+                <p style={{ color: 'var(--color-text-muted)' }}>Tenant Portal</p>
               </div>
 
               <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
@@ -100,8 +115,8 @@ export default function TenantDashboard({ onLogout }) {
                 <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div>
                     <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 600 }}>CURRENT BALANCE</div>
-                    <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--status-overdue)', margin: '0.5rem 0' }}>KES 25,000</div>
-                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Due by Oct 5th, 2026</div>
+                    <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--status-overdue)', margin: '0.5rem 0' }}>KES {stats?.currentBalance || 0}</div>
+                    <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Due by {stats?.nextDueDate || 'N/A'}</div>
                   </div>
                   <button className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', padding: '1rem', fontSize: '1rem', backgroundColor: '#10B981' }} onClick={handlePayment}>
                     Pay Now with M-Pesa
@@ -115,9 +130,9 @@ export default function TenantDashboard({ onLogout }) {
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                       <CheckCircle color="#10B981" size={24} style={{ marginTop: '0.125rem' }} />
                       <div>
-                        <div style={{ fontWeight: 600 }}>Rent Payment Received</div>
-                        <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>KES 25,000 via M-Pesa (Ref: TRX-001)</div>
-                        <div style={{ color: '#94A3B8', fontSize: '0.75rem', marginTop: '0.25rem' }}>Sep 1, 2026</div>
+                        <div style={{ fontWeight: 600 }}>Portal Access</div>
+                        <div style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>You have successfully logged in.</div>
+                        <div style={{ color: '#94A3B8', fontSize: '0.75rem', marginTop: '0.25rem' }}>Today</div>
                       </div>
                     </div>
                   </div>
