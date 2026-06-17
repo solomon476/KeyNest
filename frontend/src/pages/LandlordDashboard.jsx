@@ -33,12 +33,19 @@ const MOCK_PAYMENTS = [
 function LandlordDashboard({ onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState('Dashboard');
+  const [sendingReminders, setSendingReminders] = useState(false);
   const navigate = useNavigate();
 
   const handleAction = (e, feature) => {
     e.preventDefault();
     if (['Dashboard', 'Properties', 'Units', 'Tenants', 'Leases', 'Maintenance', 'Payments', 'Reports', 'Settings'].includes(feature)) {
       setCurrentView(feature);
+    } else if (feature === 'Send Reminders') {
+      setSendingReminders(true);
+      setTimeout(() => {
+        setSendingReminders(false);
+        alert('Reminders sent successfully to tenants with overdue balances!');
+      }, 1500);
     } else {
       alert(`${feature} feature coming soon!`);
     }
@@ -112,7 +119,9 @@ function LandlordDashboard({ onLogout }) {
                   <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.25rem' }}>Overview</h1>
                   <p style={{ color: 'var(--color-text-muted)' }}>Welcome back, Landlord. Here is what is happening across your properties today.</p>
                 </div>
-                <button className="btn btn-accent" onClick={(e) => handleAction(e, 'Send Reminders')}>Send Rent Reminders</button>
+                <button className="btn btn-accent" onClick={(e) => handleAction(e, 'Send Reminders')} disabled={sendingReminders} style={{ opacity: sendingReminders ? 0.7 : 1 }}>
+                  {sendingReminders ? 'Sending...' : 'Send Rent Reminders'}
+                </button>
               </div>
 
               {/* Summary Cards */}
