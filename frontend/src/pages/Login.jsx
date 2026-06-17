@@ -218,7 +218,7 @@ export default function Login({ onLogin }) {
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="landlord@keynest.com"
+                placeholder="Enter your email"
                 style={inputStyle}
                 autoComplete="email"
               />
@@ -283,7 +283,7 @@ export default function Login({ onLogin }) {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="John Kamau"
+                placeholder="Enter your full name"
                 style={inputStyle}
                 autoComplete="name"
               />
@@ -294,7 +294,7 @@ export default function Login({ onLogin }) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="john@example.com"
+                placeholder="Enter your email"
                 style={inputStyle}
                 autoComplete="email"
               />
@@ -305,7 +305,7 @@ export default function Login({ onLogin }) {
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="0712 345 678"
+                placeholder="Enter your phone number"
                 style={inputStyle}
                 autoComplete="tel"
               />
