@@ -6,6 +6,10 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
+import Properties from '../components/landlord/Properties';
+import Tenants from '../components/landlord/Tenants';
+import MaintenanceTasks from '../components/landlord/MaintenanceTasks';
+import Payments from '../components/shared/Payments';
 
 const MOCK_STATS = [
   { title: 'Total Rent Collected', value: 'KES 450,000', icon: CreditCard, accent: true },
@@ -23,11 +27,16 @@ const MOCK_PAYMENTS = [
 
 function LandlordDashboard({ onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [currentView, setCurrentView] = useState('Dashboard');
   const navigate = useNavigate();
 
   const handleAction = (e, feature) => {
     e.preventDefault();
-    alert(`${feature} feature coming soon!`);
+    if (['Dashboard', 'Properties', 'Tenants', 'Maintenance', 'Payments'].includes(feature)) {
+      setCurrentView(feature);
+    } else {
+      alert(`${feature} feature coming soon!`);
+    }
   };
 
   const handleLogout = (e) => {
@@ -45,11 +54,11 @@ function LandlordDashboard({ onLogout }) {
         </div>
         
         <nav className="flex-col" style={{ flex: 1 }}>
-          <a href="#" onClick={(e) => handleAction(e, 'Dashboard')} className="nav-item active"><Home size={20} /> Dashboard</a>
-          <a href="#" onClick={(e) => handleAction(e, 'Properties')} className="nav-item"><Building2 size={20} /> Properties</a>
-          <a href="#" onClick={(e) => handleAction(e, 'Tenants')} className="nav-item"><Users size={20} /> Tenants</a>
-          <a href="#" onClick={(e) => handleAction(e, 'Payments')} className="nav-item"><CreditCard size={20} /> Payments</a>
-          <a href="#" onClick={(e) => handleAction(e, 'Maintenance')} className="nav-item"><Wrench size={20} /> Maintenance</a>
+          <a href="#" onClick={(e) => handleAction(e, 'Dashboard')} className={`nav-item ${currentView === 'Dashboard' ? 'active' : ''}`}><Home size={20} /> Dashboard</a>
+          <a href="#" onClick={(e) => handleAction(e, 'Properties')} className={`nav-item ${currentView === 'Properties' ? 'active' : ''}`}><Building2 size={20} /> Properties</a>
+          <a href="#" onClick={(e) => handleAction(e, 'Tenants')} className={`nav-item ${currentView === 'Tenants' ? 'active' : ''}`}><Users size={20} /> Tenants</a>
+          <a href="#" onClick={(e) => handleAction(e, 'Payments')} className={`nav-item ${currentView === 'Payments' ? 'active' : ''}`}><CreditCard size={20} /> Payments</a>
+          <a href="#" onClick={(e) => handleAction(e, 'Maintenance')} className={`nav-item ${currentView === 'Maintenance' ? 'active' : ''}`}><Wrench size={20} /> Maintenance</a>
           <a href="#" onClick={(e) => handleAction(e, 'Reports')} className="nav-item"><BarChart3 size={20} /> Reports</a>
         </nav>
 
@@ -91,67 +100,87 @@ function LandlordDashboard({ onLogout }) {
 
         {/* Dashboard View */}
         <div className="content-area">
-          <div className="flex justify-between items-center" style={{ marginBottom: '2rem' }}>
-            <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.25rem' }}>Overview</h1>
-              <p style={{ color: 'var(--color-text-muted)' }}>Welcome back, Landlord. Here is what is happening across your properties today.</p>
-            </div>
-            <button className="btn btn-accent" onClick={(e) => handleAction(e, 'Send Reminders')}>Send Rent Reminders</button>
-          </div>
-
-          {/* Summary Cards */}
-          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '2rem' }}>
-            {MOCK_STATS.map((stat, i) => (
-              <div key={i} className="card stat-card">
+          {currentView === 'Dashboard' && (
+            <>
+              <div className="flex justify-between items-center" style={{ marginBottom: '2rem' }}>
                 <div>
-                  <div className="stat-title">{stat.title}</div>
-                  <div className="stat-value">{stat.value}</div>
+                  <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.25rem' }}>Overview</h1>
+                  <p style={{ color: 'var(--color-text-muted)' }}>Welcome back, Landlord. Here is what is happening across your properties today.</p>
                 </div>
-                <div className={`stat-icon-wrapper ${stat.accent ? 'accent' : ''}`}>
-                  <stat.icon size={24} />
+                <button className="btn btn-accent" onClick={(e) => handleAction(e, 'Send Reminders')}>Send Rent Reminders</button>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '2rem' }}>
+                {MOCK_STATS.map((stat, i) => (
+                  <div key={i} className="card stat-card">
+                    <div>
+                      <div className="stat-title">{stat.title}</div>
+                      <div className="stat-value">{stat.value}</div>
+                    </div>
+                    <div className={`stat-icon-wrapper ${stat.accent ? 'accent' : ''}`}>
+                      <stat.icon size={24} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Real-time Data Table */}
+              <div className="card">
+                <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
+                  <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Recent Payments</h2>
+                  <button className="btn btn-outline" style={{ fontSize: '0.85rem' }} onClick={(e) => handleAction(e, 'View All Payments')}>View All</button>
+                </div>
+                
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Transaction ID</th>
+                        <th>Tenant</th>
+                        <th>Unit</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {MOCK_PAYMENTS.map((payment) => (
+                        <tr key={payment.id}>
+                          <td style={{ fontWeight: 500 }}>{payment.id}</td>
+                          <td>{payment.tenant}</td>
+                          <td style={{ color: 'var(--color-text-muted)' }}>{payment.unit}</td>
+                          <td>{payment.date}</td>
+                          <td style={{ fontWeight: 600 }}>{payment.amount}</td>
+                          <td>
+                            <span className={`badge badge-${payment.status}`}>
+                              {payment.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-            ))}
-          </div>
+            </>
+          )}
 
-          {/* Real-time Data Table */}
-          <div className="card">
-            <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Recent Payments</h2>
-              <button className="btn btn-outline" style={{ fontSize: '0.85rem' }} onClick={(e) => handleAction(e, 'View All Payments')}>View All</button>
-            </div>
-            
-            <div className="table-container">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Transaction ID</th>
-                    <th>Tenant</th>
-                    <th>Unit</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {MOCK_PAYMENTS.map((payment) => (
-                    <tr key={payment.id}>
-                      <td style={{ fontWeight: 500 }}>{payment.id}</td>
-                      <td>{payment.tenant}</td>
-                      <td style={{ color: 'var(--color-text-muted)' }}>{payment.unit}</td>
-                      <td>{payment.date}</td>
-                      <td style={{ fontWeight: 600 }}>{payment.amount}</td>
-                      <td>
-                        <span className={`badge badge-${payment.status}`}>
-                          {payment.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          {currentView === 'Properties' && (
+            <Properties />
+          )}
+
+          {currentView === 'Tenants' && (
+            <Tenants />
+          )}
+
+          {currentView === 'Maintenance' && (
+            <MaintenanceTasks />
+          )}
+
+          {currentView === 'Payments' && (
+            <Payments />
+          )}
         </div>
       </main>
     </div>

@@ -5,6 +5,13 @@ const cors = require('cors');
 // Import Routes
 const mpesaRoutes = require('./routes/mpesaRoutes');
 const authRoutes = require('./routes/authRoutes');
+const propertyRoutes = require('./routes/propertyRoutes');
+const unitRoutes = require('./routes/unitRoutes');
+const tenantRoutes = require('./routes/tenantRoutes');
+const leaseRoutes = require('./routes/leaseRoutes');
+const maintenanceRoutes = require('./routes/maintenanceRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 const app = express();
 
@@ -15,6 +22,13 @@ app.use(express.json());
 // Routes
 app.use('/api/mpesa', mpesaRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/properties', propertyRoutes);
+app.use('/api/units', unitRoutes);
+app.use('/api/tenants', tenantRoutes);
+app.use('/api/leases', leaseRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
