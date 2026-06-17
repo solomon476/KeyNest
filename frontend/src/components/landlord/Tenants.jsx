@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Users, UserPlus, Phone, FileText } from 'lucide-react';
+import api from '../../../services/api';
 
 export default function Tenants() {
   const [tenants, setTenants] = useState([]);
@@ -13,10 +14,9 @@ export default function Tenants() {
 
   const fetchTenants = async () => {
     try {
-      const res = await fetch('/_/backend/api/tenants?landlordId=1');
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setTenants(data);
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const res = await api.get(`/tenants?landlordId=${user.id || 1}`);
+      setTenants(res.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -31,17 +31,13 @@ export default function Tenants() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/_/backend/api/tenants', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, landlordId: 1 })
-      });
-      if (!res.ok) throw new Error('Failed to create tenant');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      await api.post('/tenants', { ...formData, landlordId: user.id || 1 });
       await fetchTenants();
       setShowForm(false);
       setFormData({ firstName: '', lastName: '', phoneNumber: '', idNumber: '', email: '' });
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.error || err.message);
     }
   };
 

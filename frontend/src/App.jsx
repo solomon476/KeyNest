@@ -6,14 +6,19 @@ import CaretakerDashboard from './pages/CaretakerDashboard';
 import TenantDashboard from './pages/TenantDashboard';
 
 function App() {
-  // Mock authentication state
-  const [user, setUser] = useState(null);
+  // Authentication state
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   const handleLogin = (userData) => {
     setUser(userData);
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setUser(null);
   };
 

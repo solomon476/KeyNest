@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, CheckCircle } from 'lucide-react';
+import api from '../../services/api';
 
 export default function Payments() {
   const [payments, setPayments] = useState([]);
@@ -10,10 +11,9 @@ export default function Payments() {
 
   const fetchPayments = async () => {
     try {
-      const res = await fetch('/_/backend/api/payments?landlordId=1');
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setPayments(data);
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const res = await api.get(`/payments?landlordId=${user.id || 1}`);
+      setPayments(res.data);
     } catch (err) {
       console.error(err);
     }

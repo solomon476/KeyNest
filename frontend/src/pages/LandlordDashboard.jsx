@@ -7,9 +7,13 @@ import {
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import Properties from '../components/landlord/Properties';
+import Units from '../components/landlord/Units';
 import Tenants from '../components/landlord/Tenants';
+import Leases from '../components/landlord/Leases';
 import MaintenanceTasks from '../components/landlord/MaintenanceTasks';
 import Payments from '../components/shared/Payments';
+import Reports from '../components/landlord/Reports';
+import SettingsView from '../components/shared/Settings';
 import AIAssistant from '../components/shared/AIAssistant';
 
 const MOCK_STATS = [
@@ -33,7 +37,7 @@ function LandlordDashboard({ onLogout }) {
 
   const handleAction = (e, feature) => {
     e.preventDefault();
-    if (['Dashboard', 'Properties', 'Tenants', 'Maintenance', 'Payments'].includes(feature)) {
+    if (['Dashboard', 'Properties', 'Units', 'Tenants', 'Leases', 'Maintenance', 'Payments', 'Reports', 'Settings'].includes(feature)) {
       setCurrentView(feature);
     } else {
       alert(`${feature} feature coming soon!`);
@@ -59,7 +63,9 @@ function LandlordDashboard({ onLogout }) {
         <nav className="flex-col" style={{ flex: 1 }}>
           <a href="#" onClick={(e) => handleAction(e, 'Dashboard')} className={`nav-item ${currentView === 'Dashboard' ? 'active' : ''}`}><Home size={20} /> Dashboard</a>
           <a href="#" onClick={(e) => handleAction(e, 'Properties')} className={`nav-item ${currentView === 'Properties' ? 'active' : ''}`}><Building2 size={20} /> Properties</a>
+          <a href="#" onClick={(e) => handleAction(e, 'Units')} className={`nav-item ${currentView === 'Units' ? 'active' : ''}`}><Home size={20} /> Units</a>
           <a href="#" onClick={(e) => handleAction(e, 'Tenants')} className={`nav-item ${currentView === 'Tenants' ? 'active' : ''}`}><Users size={20} /> Tenants</a>
+          <a href="#" onClick={(e) => handleAction(e, 'Leases')} className={`nav-item ${currentView === 'Leases' ? 'active' : ''}`}><KeySquare size={20} /> Leases</a>
           <a href="#" onClick={(e) => handleAction(e, 'Payments')} className={`nav-item ${currentView === 'Payments' ? 'active' : ''}`}><CreditCard size={20} /> Payments</a>
           <a href="#" onClick={(e) => handleAction(e, 'Maintenance')} className={`nav-item ${currentView === 'Maintenance' ? 'active' : ''}`}><Wrench size={20} /> Maintenance</a>
           <a href="#" onClick={(e) => handleAction(e, 'Reports')} className="nav-item"><BarChart3 size={20} /> Reports</a>
@@ -169,8 +175,16 @@ function LandlordDashboard({ onLogout }) {
             <Properties />
           )}
 
+          {currentView === 'Units' && (
+            <Units />
+          )}
+
           {currentView === 'Tenants' && (
             <Tenants />
+          )}
+
+          {currentView === 'Leases' && (
+            <Leases />
           )}
 
           {currentView === 'Maintenance' && (
@@ -179,6 +193,14 @@ function LandlordDashboard({ onLogout }) {
 
           {currentView === 'Payments' && (
             <Payments />
+          )}
+
+          {currentView === 'Reports' && (
+            <Reports />
+          )}
+
+          {currentView === 'Settings' && (
+            <SettingsView />
           )}
         </div>
       </main>

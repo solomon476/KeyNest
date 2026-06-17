@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Building, MapPin } from 'lucide-react';
+import api from '../../../services/api';
 
 export default function Properties() {
   const [properties, setProperties] = useState([]);
@@ -13,10 +14,11 @@ export default function Properties() {
 
   const fetchProperties = async () => {
     try {
-      const res = await fetch('/_/backend/api/properties?landlordId=1');
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setProperties(data);
+      // The backend should derive landlordId from the JWT token in the future,
+      // but for now we pass it explicitly if needed, or rely on backend default.
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const res = await api.get(`/properties?landlordId=${user.id || 1}`);
+      setProperties(res.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -31,28 +33,23 @@ export default function Properties() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/_/backend/api/properties', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, landlordId: 1 })
-      });
-      if (!res.ok) throw new Error('Failed to create property');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      await api.post('/properties', { ...formData, landlordId: user.id || 1 });
       await fetchProperties();
       setShowForm(false);
       setFormData({ name: '', location: '', description: '' });
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.error || err.message);
     }
   };
 
   const handleDelete = async (id) => {
     if (!confirm('Are you sure you want to delete this property?')) return;
     try {
-      const res = await fetch(`/_/backend/api/properties/${id}`, { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to delete property');
+      await api.delete(`/properties/${id}`);
       await fetchProperties();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.error || err.message);
     }
   };
 

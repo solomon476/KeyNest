@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle, Wrench } from 'lucide-react';
+import api from '../../../services/api';
 
 export default function MaintenanceTasks() {
   const [tasks, setTasks] = useState([]);
@@ -10,10 +11,9 @@ export default function MaintenanceTasks() {
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch('/_/backend/api/maintenance?landlordId=1');
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setTasks(data);
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const res = await api.get(`/maintenance?landlordId=${user.id || 1}`);
+      setTasks(res.data);
     } catch (err) {
       console.error(err);
     }
@@ -21,14 +21,10 @@ export default function MaintenanceTasks() {
 
   const updateStatus = async (id, newStatus) => {
     try {
-      await fetch(`/_/backend/api/maintenance/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      });
+      await api.put(`/maintenance/${id}/status`, { status: newStatus });
       fetchTasks();
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.error || err.message);
     }
   };
 

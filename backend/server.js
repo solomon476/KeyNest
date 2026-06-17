@@ -20,17 +20,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const authMiddleware = require('./middleware/authMiddleware');
+
 // Routes
-app.use('/api/mpesa', mpesaRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/properties', propertyRoutes);
-app.use('/api/units', unitRoutes);
-app.use('/api/tenants', tenantRoutes);
-app.use('/api/leases', leaseRoutes);
-app.use('/api/maintenance', maintenanceRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/mpesa', mpesaRoutes); // M-Pesa callback needs to be public
+app.use('/api/auth', authRoutes); // Login/register are public
+
+// Protected routes
+app.use('/api/properties', authMiddleware, propertyRoutes);
+app.use('/api/units', authMiddleware, unitRoutes);
+app.use('/api/tenants', authMiddleware, tenantRoutes);
+app.use('/api/leases', authMiddleware, leaseRoutes);
+app.use('/api/maintenance', authMiddleware, maintenanceRoutes);
+app.use('/api/payments', authMiddleware, paymentRoutes);
+app.use('/api/dashboard', authMiddleware, dashboardRoutes);
+app.use('/api/ai', authMiddleware, aiRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

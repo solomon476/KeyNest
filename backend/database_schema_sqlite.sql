@@ -1,0 +1,100 @@
+-- KeyNest MVP Database Schema (SQLite)
+
+-- 1. Users Table
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    phone_number VARCHAR(20) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'tenant',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 1b. Caretakers Table
+CREATE TABLE IF NOT EXISTS caretakers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    landlord_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    assigned_properties TEXT, -- Stored as JSON string in SQLite
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 2. Properties Table
+CREATE TABLE IF NOT EXISTS properties (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    landlord_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
+    location VARCHAR(255),
+    description TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. Units Table
+CREATE TABLE IF NOT EXISTS units (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+    unit_number VARCHAR(50) NOT NULL,
+    unit_type VARCHAR(100),
+    rent_amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'vacant',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (property_id, unit_number)
+);
+
+-- 4. Tenants Table
+CREATE TABLE IF NOT EXISTS tenants (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    landlord_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    phone_number VARCHAR(20) UNIQUE NOT NULL,
+    id_number VARCHAR(50) UNIQUE,
+    email VARCHAR(255),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. Leases Table
+CREATE TABLE IF NOT EXISTS leases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    unit_id INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    start_date DATE NOT NULL,
+    end_date DATE,
+    deposit_amount DECIMAL(10, 2) NOT NULL,
+    rent_amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (unit_id, status)
+);
+
+-- 6. Payments Table
+CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lease_id INTEGER NOT NULL REFERENCES leases(id) ON DELETE SET NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    payment_method VARCHAR(50) DEFAULT 'm-pesa',
+    mpesa_receipt_number VARCHAR(100) UNIQUE,
+    payment_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 7. Maintenance Requests Table
+CREATE TABLE IF NOT EXISTS maintenance_requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant_id INTEGER NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    unit_id INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    issue_description TEXT NOT NULL,
+    status VARCHAR(50) DEFAULT 'open',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

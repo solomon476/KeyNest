@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Wrench, Plus, CheckCircle, Clock } from 'lucide-react';
+import api from '../../../services/api';
 
 export default function Maintenance() {
   const [requests, setRequests] = useState([]);
@@ -12,10 +13,10 @@ export default function Maintenance() {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch('/_/backend/api/maintenance?tenantId=1');
-      if (!res.ok) throw new Error('Failed to fetch');
-      const data = await res.json();
-      setRequests(data);
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const tenantId = user.id || 1;
+      const res = await api.get(`/maintenance?tenantId=${tenantId}`);
+      setRequests(res.data);
     } catch (err) {
       console.error(err);
     }
@@ -24,17 +25,14 @@ export default function Maintenance() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/_/backend/api/maintenance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenantId: 1, unitId: 1, issueDescription }) // Hardcoded IDs for demo
-      });
-      if (!res.ok) throw new Error('Failed to create request');
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const tenantId = user.id || 1;
+      await api.post('/maintenance', { tenantId, unitId: 1, issueDescription }); // unitId should ideally come from user's active lease
       await fetchRequests();
       setShowForm(false);
       setIssueDescription('');
     } catch (err) {
-      alert(err.message);
+      alert(err.response?.data?.error || err.message);
     }
   };
 

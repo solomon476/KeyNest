@@ -5,6 +5,8 @@ import logo from '../assets/logo.png';
 import MyUnit from '../components/tenant/MyUnit';
 import Maintenance from '../components/tenant/Maintenance';
 import Payments from '../components/shared/Payments';
+import SettingsView from '../components/shared/Settings';
+import api from '../services/api';
 
 export default function TenantDashboard({ onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -13,7 +15,7 @@ export default function TenantDashboard({ onLogout }) {
 
   const handleAction = (e, feature) => {
     e.preventDefault();
-    if (['Overview', 'My Unit', 'Maintenance', 'Payments'].includes(feature)) {
+    if (['Overview', 'My Unit', 'Maintenance', 'Payments', 'Settings'].includes(feature)) {
       setCurrentView(feature);
     } else {
       alert(`${feature} feature coming soon!`);
@@ -24,20 +26,17 @@ export default function TenantDashboard({ onLogout }) {
     e.preventDefault();
     try {
       alert('Initiating M-Pesa STK Push to your phone...');
-      const res = await fetch('/_/backend/api/mpesa/stkpush', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          phoneNumber: '254712345678', // Replace with dynamic tenant phone number
-          amount: 25000, 
-          accountReference: 'Apt 4B Rent' 
-        })
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const phoneNumber = user.phoneNumber || '254712345678';
+      
+      const res = await api.post('/mpesa/stkpush', { 
+        phoneNumber, 
+        amount: 25000, 
+        accountReference: 'Rent Payment' 
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Payment failed');
       alert('STK Push sent! Please enter your M-Pesa PIN on your phone.');
     } catch (err) {
-      alert('Error: ' + err.message + '. (Note: Ensure Daraja API keys are set in .env)');
+      alert('Error: ' + (err.response?.data?.error || err.message) + '. (Note: Ensure Daraja API keys are set in .env)');
     }
   };
 
@@ -65,6 +64,7 @@ export default function TenantDashboard({ onLogout }) {
         </nav>
 
         <div className="flex-col" style={{ marginTop: 'auto', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <a href="#" onClick={(e) => handleAction(e, 'Settings')} className={`nav-item ${currentView === 'Settings' ? 'active' : ''}`}><Menu size={20} /> Settings</a>
           <a href="#" className="nav-item" onClick={handleLogout}><LogOut size={20} /> Log Out</a>
         </div>
       </aside>
@@ -136,6 +136,10 @@ export default function TenantDashboard({ onLogout }) {
 
           {currentView === 'Payments' && (
             <Payments />
+          )}
+
+          {currentView === 'Settings' && (
+            <SettingsView />
           )}
         </div>
       </main>
