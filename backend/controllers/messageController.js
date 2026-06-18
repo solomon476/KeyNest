@@ -5,9 +5,16 @@ exports.sendMessage = async (req, res) => {
     try {
         const senderId = req.user.id;
         const { receiverId, content } = req.body;
+        const receiverIdInt = parseInt(receiverId);
 
-        if (!receiverId || !content) {
+        if (!receiverIdInt || !content) {
             return res.status(400).json({ error: 'Receiver ID and content are required' });
+        }
+
+        // Verify receiver exists
+        const userCheck = await db.query('SELECT id FROM users WHERE id = $1', [receiverIdInt]);
+        if (!userCheck.rows || userCheck.rows.length === 0) {
+            return res.status(404).json({ error: 'Recipient user not found' });
         }
 
         const query = `
@@ -15,7 +22,7 @@ exports.sendMessage = async (req, res) => {
             VALUES ($1, $2, $3)
             RETURNING *
         `;
-        const result = await db.query(query, [senderId, receiverId, content]);
+        const result = await db.query(query, [senderId, receiverIdInt, content]);
         const message = result.rows ? result.rows[0] : (Array.isArray(result) ? result[0] : result);
 
         res.status(201).json({ message: 'Message sent', data: message });

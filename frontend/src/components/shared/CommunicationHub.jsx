@@ -69,7 +69,7 @@ export default function CommunicationHub({ onClose }) {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !chatPartnerId) return;
     try {
-      await sendMessage({ receiverId: chatPartnerId, content: newMessage });
+      await sendMessage({ receiverId: parseInt(chatPartnerId), content: newMessage });
       setNewMessage('');
       fetchMessages();
     } catch (err) {
