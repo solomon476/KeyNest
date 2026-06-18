@@ -18,6 +18,7 @@ CREATE TABLE caretakers (
     user_id INT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     landlord_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     assigned_properties INT[], -- Array of property IDs they manage (optional depending on DB dialect, but good for planning)
+    permissions JSONB DEFAULT '{"can_view_rent_status": true, "can_view_total_cashflow": false, "can_approve_leases": true}', -- Customizable delegated roles
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -70,6 +71,7 @@ CREATE TABLE leases (
     deposit_amount DECIMAL(10, 2) NOT NULL,
     rent_amount DECIMAL(10, 2) NOT NULL, -- Rent agreed at lease start
     status VARCHAR(50) DEFAULT 'active' CHECK (status IN ('active', 'terminated')),
+    approval_status VARCHAR(50) DEFAULT 'pending' CHECK (approval_status IN ('pending', 'approved', 'rejected')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (unit_id, status) -- A unit can only have one active lease (this is a simplified constraint, application logic will handle complex scenarios)
@@ -108,3 +110,29 @@ CREATE INDEX idx_leases_unit ON leases(unit_id);
 CREATE INDEX idx_payments_lease ON payments(lease_id);
 CREATE INDEX idx_maintenance_tenant ON maintenance_requests(tenant_id);
 CREATE INDEX idx_maintenance_unit ON maintenance_requests(unit_id);
+
+-- 8. Messages Table (In-App Communication)
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    receiver_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    read_status BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 9. Notifications Table (System Alerts & Approvals)
+CREATE TABLE notifications (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    related_entity_type VARCHAR(50), -- e.g., 'lease', 'maintenance'
+    related_entity_id INT,           -- ID of the related entity
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_messages_sender ON messages(sender_id);
+CREATE INDEX idx_messages_receiver ON messages(receiver_id);
+CREATE INDEX idx_notifications_user ON notifications(user_id);

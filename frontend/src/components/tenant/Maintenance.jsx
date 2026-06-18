@@ -11,7 +11,7 @@ export default function Maintenance() {
     fetchRequests();
   }, []);
 
-  const fetchRequests = async () => {
+  async function fetchRequests() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const tenantId = user.id || 1;

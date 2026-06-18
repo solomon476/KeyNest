@@ -9,18 +9,23 @@ KeyNest simplifies property management by helping landlords track units, collect
 ## 👥 User Roles
 
 - **Landlord/Property Manager**: Access via Web Dashboard. Full control over properties, units, tenants, and collections.
+- **Caretaker**: Access via Web/Mobile Dashboard. View restricted to assigned properties. Features **Customizable Permissions** delegated by the Landlord (e.g., viewing rent payment status to follow up on defaulters, approving leases).
 - **Tenant**: Access via Mobile App (Android-focused). Pay rent via M-Pesa, view payment history, and submit maintenance requests.
 - **System Admin**: Backend oversight and support.
 
 ## ✅ Core Features (MVP)
 
 - **Property & Unit Management**: Setup property details, unit types, rent amounts, and current status (vacant/occupied).
-- **Tenant Tracking**: Manage tenant profiles, lease dates, and security deposits.
+- **Tenant Tracking & Onboarding**: Manage tenant profiles, lease dates, and security deposits. Includes an approval workflow where caretakers are notified to receive and approve new tenants.
 - **M-Pesa Rent Collection**: Integrated M-Pesa Daraja STK Push for seamless rent payments. Auto-records payments and generates PDF receipts.
-- **Automated Communication**: SMS/WhatsApp integration (via Africa's Talking) for rent due reminders, late alerts, and payment confirmations.
-- **Landlord Dashboard**: Overview of monthly collections, arrears lists, and vacancy tracking.
-- **Maintenance Logs**: Basic ticketing system for tenants to submit issues and landlords to update statuses.
-- **Role-Based Access Control**: Strict data isolation ensuring landlords only see their respective properties.
+- **Communication & Messaging**: 
+  - **In-App Chat**: Direct messaging between Landlords, Caretakers, and Tenants.
+  - **Automated Alerts**: SMS/WhatsApp integration (via Africa's Talking) for rent due reminders, late alerts, and payment confirmations.
+  - **System Notifications**: In-app alerts for lease approvals, new messages, and system events.
+- **Landlord Dashboard**: Overview of monthly collections, arrears lists, and vacancy tracking. Allows delegating specific permissions to Caretakers.
+- **Caretaker Dashboard**: A view of assigned properties tailored by **Delegated Permissions**. The Landlord can toggle what the Caretaker sees (e.g., allowing them to view rent arrears to take action against defaulters, while still hiding overall cash flow if desired). Automatically updates with new tenants when they sign up.
+- **Maintenance Logs**: Basic ticketing system for tenants to submit issues and landlords/caretakers to update statuses.
+- **Role-Based Access Control**: Strict data isolation ensuring landlords and caretakers only see their respective properties and have appropriate permission levels.
 
 ## 🛠️ Technology Stack (Recommended)
 

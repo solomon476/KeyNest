@@ -318,6 +318,7 @@ export default function Login({ onLogin }) {
                 style={{ ...inputStyle, cursor: 'pointer' }}
               >
                 <option value="landlord">Landlord / Property Owner</option>
+                <option value="caretaker">Caretaker</option>
                 <option value="tenant">Tenant</option>
               </select>
             </div>

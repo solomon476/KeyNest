@@ -9,7 +9,7 @@ export default function MaintenanceTasks() {
     fetchTasks();
   }, []);
 
-  const fetchTasks = async () => {
+  async function fetchTasks() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const res = await api.get(`/maintenance?landlordId=${user.id || 1}`);

@@ -98,3 +98,16 @@ CREATE TABLE IF NOT EXISTS maintenance_requests (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 8. Meter Readings Table
+CREATE TABLE IF NOT EXISTS meter_readings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    unit_id INTEGER NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+    property_id INTEGER NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+    caretaker_id INTEGER REFERENCES caretakers(id) ON DELETE SET NULL,
+    reading_type VARCHAR(50) NOT NULL,
+    reading_value DECIMAL(10, 2) NOT NULL,
+    reading_date DATE NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

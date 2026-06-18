@@ -18,7 +18,7 @@ export default function TenantDashboard({ onLogout }) {
     fetchTenantStats();
   }, []);
 
-  const fetchTenantStats = async () => {
+  async function fetchTenantStats() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const res = await api.get(`/dashboard/tenant-stats?tenantId=${user.id}`);
@@ -94,7 +94,7 @@ export default function TenantDashboard({ onLogout }) {
             <div style={{ fontSize: '1.25rem', fontWeight: 600, color: '#1E293B' }}>Tenant Portal</div>
           </div>
           
-          <div className="flex items-center gap-6">
+          <div className="flex items-center header-actions">
             <Bell size={24} color="#64748B" />
             <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
               TN

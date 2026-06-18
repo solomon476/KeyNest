@@ -14,7 +14,7 @@ export default function Leases() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const landlordId = user.id || 1;

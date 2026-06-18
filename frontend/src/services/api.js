@@ -58,4 +58,81 @@ export const getTenants = async () => {
   return response.data;
 };
 
+// Caretakers
+export const getCaretakers = async () => {
+  const response = await api.get('/caretakers');
+  return response.data;
+};
+
+export const assignCaretaker = async (data) => {
+  const response = await api.post('/caretakers', data);
+  return response.data;
+};
+
+// Messages
+export const getConversation = async (userId) => {
+  const response = await api.get(`/messages/${userId}`);
+  return response.data;
+};
+
+export const sendMessage = async (data) => {
+  const response = await api.post('/messages', data);
+  return response.data;
+};
+
+// Notifications
+export const getNotifications = async () => {
+  const response = await api.get('/notifications');
+  return response.data;
+};
+
+export const markNotificationRead = async (id) => {
+  const response = await api.patch(`/notifications/${id}/read`);
+  return response.data;
+};
+
+// Leases
+export const approveLease = async (id) => {
+  const response = await api.patch(`/leases/${id}/approve`);
+  return response.data;
+};
+
+export const rejectLease = async (id) => {
+  const response = await api.patch(`/leases/${id}/reject`);
+  return response.data;
+};
+
+// Dashboard Stats
+export const getDashboardStats = async () => {
+  const response = await api.get('/dashboard/stats');
+  return response.data;
+};
+
+export const getTenantStats = async () => {
+  const response = await api.get('/dashboard/tenant-stats');
+  return response.data;
+};
+
+// Payments
+export const getPayments = async () => {
+  const response = await api.get('/payments');
+  return response.data;
+};
+
+export const recordPayment = async (data) => {
+  const response = await api.post('/payments', data);
+  return response.data;
+};
+
+// Maintenance
+export const getMaintenanceTasks = async () => {
+  const response = await api.get('/maintenance');
+  return response.data;
+};
+
+export const createMaintenanceTask = async (data) => {
+  const response = await api.post('/maintenance', data);
+  return response.data;
+};
+
 export default api;

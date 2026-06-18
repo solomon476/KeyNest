@@ -18,10 +18,42 @@ exports.getLandlordStats = async (req, res) => {
         const rentResult = await db.query(rentQuery, [landlordId]);
         const totalRentCollected = parseFloat(rentResult.rows?.[0]?.total || 0);
 
-        // 2. Pending balances (Mocked for now, assumes expected rent vs paid)
-        // A simple way is sum of all active lease rents - sum of all payments this month
-        // We will just do a mock for pending balances and overdue accounts for simplicity
-        
+        // 2. Pending balances
+        // Calculate total rent due across all active leases minus total payments made
+        const pendingQuery = `
+            SELECT COALESCE(SUM(l.rent_amount), 0) - (
+                SELECT COALESCE(SUM(p.amount), 0)
+                FROM payments p
+                JOIN leases pl ON p.lease_id = pl.id
+                JOIN units pu ON pl.unit_id = pu.id
+                JOIN properties pprop ON pu.property_id = pprop.id
+                WHERE pprop.landlord_id = $1 AND p.status = 'completed'
+            ) as pending
+            FROM leases l
+            JOIN units u ON l.unit_id = u.id
+            JOIN properties pr ON u.property_id = pr.id
+            WHERE pr.landlord_id = $1 AND l.status = 'active'
+        `;
+        const pendingResult = await db.query(pendingQuery, [landlordId]);
+        const pendingBalances = parseFloat(pendingResult.rows?.[0]?.pending || 0);
+
+        // 2b. Overdue accounts
+        // Any lease where the payments so far are less than the expected rent
+        const overdueQuery = `
+            SELECT COUNT(*) as overdue_count
+            FROM leases l
+            JOIN units u ON l.unit_id = u.id
+            JOIN properties pr ON u.property_id = pr.id
+            WHERE pr.landlord_id = $1 AND l.status = 'active'
+            AND l.rent_amount > (
+                SELECT COALESCE(SUM(p.amount), 0)
+                FROM payments p
+                WHERE p.lease_id = l.id AND p.status = 'completed'
+            )
+        `;
+        const overdueResult = await db.query(overdueQuery, [landlordId]);
+        const overdueAccounts = parseInt(overdueResult.rows?.[0]?.overdue_count || 0);
+
         // 3. Occupancy rate
         const occupancyQuery = `
             SELECT 
@@ -38,9 +70,9 @@ exports.getLandlordStats = async (req, res) => {
 
         const stats = {
             totalRentCollected,
-            pendingBalances: 0, // Placeholder
+            pendingBalances: pendingBalances < 0 ? 0 : pendingBalances, 
             occupancyRate,
-            overdueAccounts: 0 // Placeholder
+            overdueAccounts
         };
 
         res.status(200).json(stats);
@@ -67,10 +99,14 @@ exports.getTenantStats = async (req, res) => {
             return res.status(200).json({ currentBalance: 0, nextDueDate: 'N/A' });
         }
 
+        // Calculate next due date (e.g. 5th of the next month)
+        const today = new Date();
+        const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 5);
+        
         // Return stats
         res.status(200).json({
             currentBalance: parseFloat(lease.rent_amount), // Simple assumption: rent amount due
-            nextDueDate: '5th of Next Month' // Mock date
+            nextDueDate: nextMonth.toISOString().split('T')[0]
         });
 
     } catch (error) {

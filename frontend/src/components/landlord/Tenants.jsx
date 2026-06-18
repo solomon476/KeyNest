@@ -12,7 +12,7 @@ export default function Tenants() {
     fetchTenants();
   }, []);
 
-  const fetchTenants = async () => {
+  async function fetchTenants() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const res = await api.get(`/tenants?landlordId=${user.id || 1}`);

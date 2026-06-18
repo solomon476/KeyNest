@@ -11,7 +11,7 @@ export default function MyUnit() {
     fetchMyLease();
   }, []);
 
-  const fetchMyLease = async () => {
+  async function fetchMyLease() {
     try {
       setLoading(true);
       const res = await api.get('/leases/my-lease');

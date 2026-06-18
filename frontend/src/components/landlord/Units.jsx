@@ -13,7 +13,7 @@ export default function Units() {
     fetchData();
   }, []);
 
-  const fetchData = async () => {
+  async function fetchData() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const [unitsRes, propsRes] = await Promise.all([

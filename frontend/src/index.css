@@ -162,6 +162,25 @@ body {
   padding: 0 2rem;
 }
 
+.header-actions {
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 0 1rem;
+  }
+  .search-bar {
+    display: none !important;
+  }
+  .header-actions {
+    gap: 1rem !important;
+  }
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
 .content-area {
   padding: 2rem;
   overflow-y: auto;

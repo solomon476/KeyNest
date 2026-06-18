@@ -12,7 +12,7 @@ export default function Properties() {
     fetchProperties();
   }, []);
 
-  const fetchProperties = async () => {
+  async function fetchProperties() {
     try {
       // The backend should derive landlordId from the JWT token in the future,
       // but for now we pass it explicitly if needed, or rely on backend default.

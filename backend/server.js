@@ -1,3 +1,10 @@
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION:', err.stack);
+});
+process.on('unhandledRejection', (reason, p) => {
+    console.error('UNHANDLED REJECTION:', reason);
+});
+
 if (process.env.NODE_ENV !== 'production') {
     require('dotenv').config();
 }
@@ -15,6 +22,10 @@ const maintenanceRoutes = require('./routes/maintenanceRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const aiRoutes = require('./routes/aiRoutes');
+const meterRoutes = require('./routes/meterRoutes');
+const messageRoutes = require('./routes/messageRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+const caretakerRoutes = require('./routes/caretakerRoutes');
 
 const app = express();
 
@@ -37,6 +48,10 @@ app.use('/api/maintenance', authMiddleware, maintenanceRoutes);
 app.use('/api/payments', authMiddleware, paymentRoutes);
 app.use('/api/dashboard', authMiddleware, dashboardRoutes);
 app.use('/api/ai', authMiddleware, aiRoutes);
+app.use('/api/meters', authMiddleware, meterRoutes);
+app.use('/api/messages', authMiddleware, messageRoutes);
+app.use('/api/notifications', authMiddleware, notificationRoutes);
+app.use('/api/caretakers', authMiddleware, caretakerRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

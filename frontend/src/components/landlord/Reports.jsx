@@ -13,7 +13,7 @@ export default function Reports() {
     fetchStats();
   }, []);
 
-  const fetchStats = async () => {
+  async function fetchStats() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const res = await api.get(`/dashboard/stats?landlordId=${user.id || 1}`);

@@ -9,7 +9,7 @@ export default function Payments() {
     fetchPayments();
   }, []);
 
-  const fetchPayments = async () => {
+  async function fetchPayments() {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       const queryParam = user.role === 'tenant' ? `tenantId=${user.id}` : `landlordId=${user.id || 1}`;

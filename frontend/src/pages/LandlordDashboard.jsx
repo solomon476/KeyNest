@@ -15,30 +15,41 @@ import Payments from '../components/shared/Payments';
 import Reports from '../components/landlord/Reports';
 import SettingsView from '../components/shared/Settings';
 import AIAssistant from '../components/shared/AIAssistant';
+import Caretakers from '../components/landlord/Caretakers';
+import CommunicationHub from '../components/shared/CommunicationHub';
 
-const MOCK_STATS = [
-  { title: 'Total Rent Collected', value: 'KES 450,000', icon: CreditCard, accent: true },
-  { title: 'Pending Balances', value: 'KES 85,000', icon: BarChart3 },
-  { title: 'Occupancy Rate', value: '92%', icon: Users },
-  { title: 'Overdue Accounts', value: '3', icon: Bell, danger: true }
-];
+import { getDashboardStats, getPayments } from '../services/api';
 
-const MOCK_PAYMENTS = [
-  { id: 'TRX-001', tenant: 'John Doe', unit: 'Apt 4B', amount: 'KES 25,000', date: 'Oct 01, 2026', status: 'paid' },
-  { id: 'TRX-002', tenant: 'Mary Wanjiku', unit: 'Shop 2', amount: 'KES 15,000', date: 'Oct 02, 2026', status: 'paid' },
-  { id: 'TRX-003', tenant: 'Peter Omondi', unit: 'Apt 1A', amount: 'KES 30,000', date: 'Oct 05, 2026', status: 'pending' },
-  { id: 'TRX-004', tenant: 'Sarah Kimani', unit: 'Apt 3C', amount: 'KES 20,000', date: 'Sep 28, 2026', status: 'overdue' },
-];
 
 function LandlordDashboard({ onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState('Dashboard');
   const [sendingReminders, setSendingReminders] = useState(false);
+  const [showCommHub, setShowCommHub] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState(null);
+  const [paymentsList, setPaymentsList] = useState([]);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsData, paymentsData] = await Promise.all([
+          getDashboardStats(),
+          getPayments()
+        ]);
+        setDashboardStats(statsData);
+        setPaymentsList(paymentsData);
+      } catch (err) {
+        console.error('Failed to fetch dashboard data', err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Handle various actions from the dashboard navigation and buttons
   const handleAction = (e, feature) => {
     e.preventDefault();
-    if (['Dashboard', 'Properties', 'Units', 'Tenants', 'Leases', 'Maintenance', 'Payments', 'Reports', 'Settings'].includes(feature)) {
+    if (['Dashboard', 'Properties', 'Units', 'Tenants', 'Leases', 'Caretakers', 'Maintenance', 'Payments', 'Reports', 'Settings'].includes(feature)) {
       setCurrentView(feature);
     } else if (feature === 'Send Reminders') {
       setSendingReminders(true);
@@ -46,6 +57,10 @@ function LandlordDashboard({ onLogout }) {
         setSendingReminders(false);
         alert('Reminders sent successfully to tenants with overdue balances!');
       }, 1500);
+    } else if (feature === 'Add Property') {
+      setCurrentView('Properties');
+    } else if (feature === 'View All Payments') {
+      setCurrentView('Payments');
     } else {
       alert(`${feature} feature coming soon!`);
     }
@@ -73,6 +88,7 @@ function LandlordDashboard({ onLogout }) {
           <a href="#" onClick={(e) => handleAction(e, 'Units')} className={`nav-item ${currentView === 'Units' ? 'active' : ''}`}><Home size={20} /> Units</a>
           <a href="#" onClick={(e) => handleAction(e, 'Tenants')} className={`nav-item ${currentView === 'Tenants' ? 'active' : ''}`}><Users size={20} /> Tenants</a>
           <a href="#" onClick={(e) => handleAction(e, 'Leases')} className={`nav-item ${currentView === 'Leases' ? 'active' : ''}`}><KeySquare size={20} /> Leases</a>
+          <a href="#" onClick={(e) => handleAction(e, 'Caretakers')} className={`nav-item ${currentView === 'Caretakers' ? 'active' : ''}`}><Users size={20} /> Caretakers</a>
           <a href="#" onClick={(e) => handleAction(e, 'Payments')} className={`nav-item ${currentView === 'Payments' ? 'active' : ''}`}><CreditCard size={20} /> Payments</a>
           <a href="#" onClick={(e) => handleAction(e, 'Maintenance')} className={`nav-item ${currentView === 'Maintenance' ? 'active' : ''}`}><Wrench size={20} /> Maintenance</a>
           <a href="#" onClick={(e) => handleAction(e, 'Reports')} className="nav-item"><BarChart3 size={20} /> Reports</a>
@@ -98,9 +114,9 @@ function LandlordDashboard({ onLogout }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <button className="btn btn-primary" onClick={(e) => handleAction(e, 'Add Property')}><Plus size={18} /> Add Property</button>
-            <div style={{ position: 'relative', cursor: 'pointer' }}>
+          <div className="flex items-center header-actions">
+            <button className="btn btn-primary" onClick={(e) => handleAction(e, 'Add Property')}><Plus size={18} /> <span className="hide-mobile">Add Property</span></button>
+            <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowCommHub(true)}>
               <Bell size={24} color="#64748B" />
               <span style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, backgroundColor: 'var(--status-overdue)', borderRadius: '50%' }}></span>
             </div>
@@ -126,17 +142,34 @@ function LandlordDashboard({ onLogout }) {
 
               {/* Summary Cards */}
               <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', marginBottom: '2rem' }}>
-                {MOCK_STATS.map((stat, i) => (
-                  <div key={i} className="card stat-card">
-                    <div>
-                      <div className="stat-title">{stat.title}</div>
-                      <div className="stat-value">{stat.value}</div>
-                    </div>
-                    <div className={`stat-icon-wrapper ${stat.accent ? 'accent' : ''}`}>
-                      <stat.icon size={24} />
-                    </div>
+                <div className="card stat-card">
+                  <div>
+                    <div className="stat-title">Total Rent Collected</div>
+                    <div className="stat-value">KES {dashboardStats?.totalRentCollected?.toLocaleString() || '0'}</div>
                   </div>
-                ))}
+                  <div className="stat-icon-wrapper accent"><CreditCard size={24} /></div>
+                </div>
+                <div className="card stat-card">
+                  <div>
+                    <div className="stat-title">Pending Balances</div>
+                    <div className="stat-value">KES {dashboardStats?.pendingBalances?.toLocaleString() || '0'}</div>
+                  </div>
+                  <div className="stat-icon-wrapper"><BarChart3 size={24} /></div>
+                </div>
+                <div className="card stat-card">
+                  <div>
+                    <div className="stat-title">Occupancy Rate</div>
+                    <div className="stat-value">{dashboardStats?.occupancyRate || '0'}%</div>
+                  </div>
+                  <div className="stat-icon-wrapper"><Users size={24} /></div>
+                </div>
+                <div className="card stat-card">
+                  <div>
+                    <div className="stat-title">Overdue Accounts</div>
+                    <div className="stat-value">{dashboardStats?.overdueAccounts || '0'}</div>
+                  </div>
+                  <div className="stat-icon-wrapper"><Bell size={24} /></div>
+                </div>
               </div>
 
               {/* Real-time Data Table */}
@@ -159,13 +192,13 @@ function LandlordDashboard({ onLogout }) {
                       </tr>
                     </thead>
                     <tbody>
-                      {MOCK_PAYMENTS.map((payment) => (
+                      {paymentsList.slice(0, 5).map((payment) => (
                         <tr key={payment.id}>
                           <td style={{ fontWeight: 500 }}>{payment.id}</td>
-                          <td>{payment.tenant}</td>
-                          <td style={{ color: 'var(--color-text-muted)' }}>{payment.unit}</td>
-                          <td>{payment.date}</td>
-                          <td style={{ fontWeight: 600 }}>{payment.amount}</td>
+                          <td>{payment.first_name} {payment.last_name}</td>
+                          <td style={{ color: 'var(--color-text-muted)' }}>{payment.unit_number}</td>
+                          <td>{new Date(payment.payment_date).toLocaleDateString()}</td>
+                          <td style={{ fontWeight: 600 }}>KES {parseFloat(payment.amount).toLocaleString()}</td>
                           <td>
                             <span className={`badge badge-${payment.status}`}>
                               {payment.status}
@@ -173,6 +206,11 @@ function LandlordDashboard({ onLogout }) {
                           </td>
                         </tr>
                       ))}
+                      {paymentsList.length === 0 && (
+                        <tr>
+                          <td colSpan="6" style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>No recent payments found.</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -196,6 +234,10 @@ function LandlordDashboard({ onLogout }) {
             <Leases />
           )}
 
+          {currentView === 'Caretakers' && (
+            <Caretakers />
+          )}
+
           {currentView === 'Maintenance' && (
             <MaintenanceTasks />
           )}
@@ -215,6 +257,7 @@ function LandlordDashboard({ onLogout }) {
       </main>
 
       <AIAssistant />
+      {showCommHub && <CommunicationHub onClose={() => setShowCommHub(false)} />}
     </div>
   );
 }
