@@ -41,6 +41,11 @@ export const registerUser = async (userData) => {
   return response.data;
 };
 
+export const getUsers = async () => {
+  const response = await api.get('/auth/users');
+  return response.data;
+};
+
 // Properties
 export const getProperties = async () => {
   const response = await api.get('/properties');

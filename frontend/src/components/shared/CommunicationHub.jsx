@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getNotifications, markNotificationRead, getConversation, sendMessage, getTenants, getCaretakers } from '../../services/api';
+import { getNotifications, markNotificationRead, getConversation, sendMessage, getUsers } from '../../services/api';
 import { Bell, MessageSquare, X } from 'lucide-react';
 
 export default function CommunicationHub({ onClose }) {
@@ -25,22 +25,10 @@ export default function CommunicationHub({ onClose }) {
 
   const fetchChatPartners = async () => {
     try {
-      const [tenantsRes, caretakersRes] = await Promise.all([
-        getTenants().catch(() => []),
-        getCaretakers().catch(() => [])
-      ]);
+      const usersRes = await getUsers().catch(() => []);
+      const users = Array.isArray(usersRes) ? usersRes : (usersRes.data || []);
       
-      const partners = [];
-      
-      const tenants = Array.isArray(tenantsRes) ? tenantsRes : (tenantsRes.data || []);
-      tenants.forEach(t => {
-        if (t.user_id) partners.push({ id: t.user_id, name: `${t.first_name} ${t.last_name} (Tenant)` });
-      });
-
-      const caretakers = Array.isArray(caretakersRes) ? caretakersRes : (caretakersRes.data || []);
-      caretakers.forEach(c => {
-        if (c.user_id && c.name) partners.push({ id: c.user_id, name: `${c.name} (Caretaker)` });
-      });
+      const partners = users.map(u => ({ id: u.id, name: `${u.name} (${u.role})` }));
 
       setChatPartners(partners);
       if (partners.length > 0) {
@@ -152,7 +140,7 @@ export default function CommunicationHub({ onClose }) {
               </div>
             ) : (
               <div style={{ padding: '1rem', textAlign: 'center', color: '#64748B', fontSize: '0.875rem' }}>
-                No active tenants or caretakers available to message.
+                No active users available to message.
               </div>
             )}
 

@@ -118,4 +118,16 @@ router.get('/me', require('../middleware/authMiddleware'), async (req, res) => {
     }
 });
 
+// Get all users (for chat partners)
+router.get('/users', require('../middleware/authMiddleware'), async (req, res) => {
+    try {
+        const result = await db.query('SELECT id, name, role FROM users WHERE id != $1', [req.user.id]);
+        const users = result.rows || result;
+        res.status(200).json(users);
+    } catch (err) {
+        console.error('Error fetching users:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 module.exports = router;
