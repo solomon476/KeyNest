@@ -1,20 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { getCaretakers, assignCaretaker } from '../../services/api';
+import { getCaretakers, assignCaretaker, getUsers, getProperties } from '../../services/api';
 
 export default function Caretakers() {
   const [caretakers, setCaretakers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  
+  const [formData, setFormData] = useState({ userId: '', assignedProperties: [] });
 
   useEffect(() => {
-    fetchCaretakers();
+    fetchData();
   }, []);
 
-  const fetchCaretakers = async () => {
+  const fetchData = async () => {
     try {
-      const data = await getCaretakers();
-      setCaretakers(data.data || []);
+      const [caretakersData, usersData, propertiesData] = await Promise.all([
+        getCaretakers(),
+        getUsers(),
+        getProperties()
+      ]);
+      setCaretakers(caretakersData.data || []);
+      setUsers(usersData || []);
+      setProperties(propertiesData || []);
     } catch (err) {
-      console.error('Failed to fetch caretakers', err);
+      console.error('Failed to fetch data', err);
     } finally {
       setLoading(false);
     }
@@ -31,9 +42,36 @@ export default function Caretakers() {
         userId: caretaker.user_id,
         permissions: updatedPermissions
       });
-      fetchCaretakers();
+      fetchData();
     } catch (err) {
       alert('Failed to update permissions');
+    }
+  };
+
+  const handlePropertyToggle = (propertyId) => {
+    setFormData(prev => {
+      const isAssigned = prev.assignedProperties.includes(propertyId);
+      if (isAssigned) {
+        return { ...prev, assignedProperties: prev.assignedProperties.filter(id => id !== propertyId) };
+      } else {
+        return { ...prev, assignedProperties: [...prev.assignedProperties, propertyId] };
+      }
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.userId) return alert('Please select a user');
+    try {
+      await assignCaretaker({
+        userId: parseInt(formData.userId),
+        assignedProperties: formData.assignedProperties
+      });
+      await fetchData();
+      setShowForm(false);
+      setFormData({ userId: '', assignedProperties: [] });
+    } catch (err) {
+      alert(err.response?.data?.error || err.message);
     }
   };
 
@@ -43,8 +81,55 @@ export default function Caretakers() {
     <div className="card">
       <div className="flex justify-between items-center" style={{ marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.25rem', fontWeight: 600 }}>Manage Caretakers</h2>
-        <button className="btn btn-primary" onClick={() => alert('Add Caretaker feature coming soon')}>Add Caretaker</button>
+        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+          {showForm ? 'Cancel' : 'Add Caretaker'}
+        </button>
       </div>
+
+      {showForm && (
+        <div style={{ marginBottom: '2rem', padding: '1.5rem', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '1rem' }}>Assign New Caretaker</h3>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Select User *</label>
+              <select 
+                required 
+                value={formData.userId} 
+                onChange={(e) => setFormData({...formData, userId: e.target.value})} 
+                className="input" 
+                style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #CBD5E1' }}
+              >
+                <option value="">-- Choose a User --</option>
+                {users.map(u => (
+                  <option key={u.id} value={u.id}>{u.name} ({u.email || u.phone_number})</option>
+                ))}
+              </select>
+              <small style={{ color: 'var(--color-text-muted)' }}>Only registered users can be assigned as caretakers.</small>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Assign Properties (Optional)</label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '0.5rem', padding: '1rem', border: '1px solid #CBD5E1', borderRadius: '8px', backgroundColor: '#fff' }}>
+                {properties.map(p => (
+                  <label key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <input 
+                      type="checkbox" 
+                      checked={formData.assignedProperties.includes(p.id)}
+                      onChange={() => handlePropertyToggle(p.id)}
+                    />
+                    {p.name}
+                  </label>
+                ))}
+                {properties.length === 0 && <span style={{ color: '#64748B' }}>No properties found.</span>}
+              </div>
+            </div>
+
+            <div style={{ alignSelf: 'flex-end', marginTop: '0.5rem' }}>
+              <button type="submit" className="btn btn-primary">Save Caretaker</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       <div className="table-container">
         <table>
