@@ -142,11 +142,11 @@ export default function Leases({ initialTenantId }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Agreed Rent Amount *</label>
-                <input type="number" required name="rentAmount" value={formData.rentAmount} onChange={handleInputChange} className="input" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #CBD5E1' }} />
+                <input type="number" required min="0" name="rentAmount" value={formData.rentAmount} onChange={handleInputChange} className="input" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #CBD5E1' }} />
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 <label style={{ fontWeight: 600, fontSize: '0.875rem' }}>Deposit Amount *</label>
-                <input type="number" required name="depositAmount" value={formData.depositAmount} onChange={handleInputChange} className="input" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #CBD5E1' }} />
+                <input type="number" required min="0" name="depositAmount" value={formData.depositAmount} onChange={handleInputChange} className="input" placeholder="e.g. 10000" style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid #CBD5E1' }} />
               </div>
             </div>
 
