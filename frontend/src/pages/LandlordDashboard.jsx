@@ -28,6 +28,7 @@ function LandlordDashboard({ onLogout }) {
   const [showCommHub, setShowCommHub] = useState(false);
   const [dashboardStats, setDashboardStats] = useState(null);
   const [paymentsList, setPaymentsList] = useState([]);
+  const [initialLeaseTenant, setInitialLeaseTenant] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,6 +52,7 @@ function LandlordDashboard({ onLogout }) {
     e.preventDefault();
     if (['Dashboard', 'Properties', 'Units', 'Tenants', 'Leases', 'Caretakers', 'Maintenance', 'Payments', 'Reports', 'Settings'].includes(feature)) {
       setCurrentView(feature);
+      setInitialLeaseTenant(null);
     } else if (feature === 'Send Reminders') {
       setSendingReminders(true);
       setTimeout(() => {
@@ -59,8 +61,10 @@ function LandlordDashboard({ onLogout }) {
       }, 1500);
     } else if (feature === 'Add Property') {
       setCurrentView('Properties');
+      setInitialLeaseTenant(null);
     } else if (feature === 'View All Payments') {
       setCurrentView('Payments');
+      setInitialLeaseTenant(null);
     } else {
       alert(`${feature} feature coming soon!`);
     }
@@ -227,11 +231,14 @@ function LandlordDashboard({ onLogout }) {
           )}
 
           {currentView === 'Tenants' && (
-            <Tenants />
+            <Tenants onAssignLease={(tenantId) => {
+              setInitialLeaseTenant(tenantId);
+              setCurrentView('Leases');
+            }} />
           )}
 
           {currentView === 'Leases' && (
-            <Leases />
+            <Leases initialTenantId={initialLeaseTenant} />
           )}
 
           {currentView === 'Caretakers' && (

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Users, UserPlus, Phone, FileText } from 'lucide-react';
 import api from '../../services/api';
 
-export default function Tenants() {
+export default function Tenants({ onAssignLease }) {
   const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -112,7 +112,7 @@ export default function Tenants() {
                     <td>{tenant.id_number || 'N/A'}</td>
                     <td>{new Date(tenant.created_at).toLocaleDateString()}</td>
                     <td>
-                      <button className="btn btn-outline" style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>Assign Lease</button>
+                      <button className="btn btn-outline" onClick={() => onAssignLease && onAssignLease(tenant.id)} style={{ padding: '0.25rem 0.75rem', fontSize: '0.85rem' }}>Assign Lease</button>
                     </td>
                   </tr>
                 ))}

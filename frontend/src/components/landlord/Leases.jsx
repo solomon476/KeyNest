@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, FileText, CheckCircle } from 'lucide-react';
 import api from '../../services/api';
 
-export default function Leases() {
+export default function Leases({ initialTenantId }) {
   const [leases, setLeases] = useState([]);
   const [tenants, setTenants] = useState([]);
   const [units, setUnits] = useState([]);
@@ -12,7 +12,7 @@ export default function Leases() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [initialTenantId]);
 
   async function fetchData() {
     try {
@@ -33,10 +33,14 @@ export default function Leases() {
       if (tenantsRes.data.length > 0 && vacantUnits.length > 0) {
           setFormData(prev => ({
               ...prev, 
-              tenantId: tenantsRes.data[0].id, 
-              unitId: vacantUnits[0].id,
-              rentAmount: vacantUnits[0].rent_amount
+              tenantId: initialTenantId || prev.tenantId || tenantsRes.data[0].id, 
+              unitId: prev.unitId || vacantUnits[0].id,
+              rentAmount: prev.rentAmount || vacantUnits[0].rent_amount
           }));
+      }
+      
+      if (initialTenantId) {
+          setShowForm(true);
       }
     } catch (err) {
       console.error(err);
