@@ -40,13 +40,24 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
+        // The frontend passes user.id as caretaker_id. We need to look up the actual caretaker table ID.
+        let actualCaretakerId = null;
+        if (caretaker_id) {
+            const caretakerResult = await db.query('SELECT id FROM caretakers WHERE user_id = $1', [caretaker_id]);
+            if (caretakerResult.rows && caretakerResult.rows.length > 0) {
+                actualCaretakerId = caretakerResult.rows[0].id;
+            } else if (Array.isArray(caretakerResult) && caretakerResult.length > 0) {
+                actualCaretakerId = caretakerResult[0].id;
+            }
+        }
+
         const query = `
             INSERT INTO meter_readings (unit_id, property_id, caretaker_id, reading_type, reading_value, reading_date)
             VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING id
         `;
 
-        const result = await db.query(query, [unit_id, property_id, caretaker_id || null, reading_type, reading_value, reading_date]);
+        const result = await db.query(query, [unit_id, property_id, actualCaretakerId, reading_type, reading_value, reading_date]);
         const id = result.rows ? result.rows[0].id : result[0].id;
         
         res.status(201).json({ id, message: 'Meter reading submitted successfully' });
