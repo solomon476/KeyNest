@@ -46,7 +46,7 @@ exports.createLease = async (req, res) => {
             VALUES ($1, $2, $3, $4, $5, $6, 'active', 'pending')
             RETURNING *
         `;
-        const values = [tenantId, unitId, startDate, endDate, depositAmount, rentAmount];
+        const values = [tenantId, unitId, startDate, endDate || null, depositAmount, rentAmount];
         
         const result = await db.query(query, values);
         const newLease = (result.rows && result.rows[0]) ? result.rows[0] : (Array.isArray(result) ? result[0] : result);
@@ -89,7 +89,10 @@ exports.createLease = async (req, res) => {
         res.status(201).json(newLease);
     } catch (error) {
         console.error('Error creating lease:', error);
-        res.status(500).json({ error: 'Failed to create lease' });
+        if (error.code === '23505') {
+            return res.status(400).json({ error: 'This unit already has an active lease.' });
+        }
+        res.status(500).json({ error: error.message || 'Failed to create lease' });
     }
 };
 
@@ -157,7 +160,9 @@ exports.getMyLease = async (req, res) => {
             FROM leases l
             JOIN units u ON l.unit_id = u.id
             JOIN properties p ON u.property_id = p.id
-            WHERE l.tenant_id = $1 AND l.status = 'active'
+            JOIN tenants t ON l.tenant_id = t.id
+            WHERE RIGHT(t.phone_number, 9) = RIGHT((SELECT phone_number FROM users WHERE id = $1), 9)
+            AND l.status = 'active'
             LIMIT 1
         `;
         const result = await db.query(query, [tenantId]);

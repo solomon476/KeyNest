@@ -48,6 +48,9 @@ exports.createUnit = async (req, res) => {
         res.status(201).json(newUnit);
     } catch (error) {
         console.error('Error creating unit:', error);
+        if (error.code === '23505') {
+            return res.status(400).json({ error: 'A unit with this number already exists in this property.' });
+        }
         res.status(500).json({ error: 'Failed to create unit' });
     }
 };
