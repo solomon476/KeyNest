@@ -71,6 +71,57 @@ app.get('/api/debug-env', (req, res) => {
     });
 });
 
+app.get('/api/migrate-now', async (req, res) => {
+    const db = require('./config/db');
+    try {
+        await db.query(`ALTER TABLE leases ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'pending' CHECK (approval_status IN ('pending', 'approved', 'rejected'));`);
+        res.status(200).json({ success: true, message: "Migration applied successfully. Added approval_status to leases." });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+app.get('/api/debug-db', async (req, res) => {
+    const db = require('./config/db');
+    try {
+        // Find the first landlord to use as default for backfill
+        const landlordRes = await db.query(`SELECT id FROM users WHERE role = 'landlord' LIMIT 1`);
+        const defaultLandlordId = (landlordRes.rows || [])[0]?.id || 1;
+
+        // Backfill: create tenant records for any tenant users who don't have one
+        const tenantUsers = await db.query(`SELECT id, name, email, phone_number FROM users WHERE role = 'tenant'`);
+        const backfillResults = [];
+        for (const u of (tenantUsers.rows || [])) {
+            const firstName = u.name.split(' ')[0];
+            const lastName = u.name.split(' ').slice(1).join(' ') || '';
+            try {
+                const r = await db.query(
+                    `INSERT INTO tenants (user_id, first_name, last_name, phone_number, email, landlord_id)
+                     VALUES ($1, $2, $3, $4, $5, $6)
+                     ON CONFLICT (user_id) DO NOTHING
+                     RETURNING id`,
+                    [u.id, firstName, lastName, u.phone_number, u.email, defaultLandlordId]
+                );
+                backfillResults.push({ userId: u.id, name: u.name, inserted: (r.rows || []).length > 0 });
+            } catch (e) {
+                backfillResults.push({ userId: u.id, name: u.name, error: e.message });
+            }
+        }
+
+        const users = await db.query('SELECT id, name, email, phone_number, role FROM users');
+        const tenants = await db.query('SELECT id, user_id, phone_number FROM tenants');
+        const leases = await db.query('SELECT id, tenant_id, unit_id, status FROM leases');
+        res.json({ 
+            backfill: backfillResults,
+            users: users.rows || [], 
+            tenants: tenants.rows || [], 
+            leases: leases.rows || [] 
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Export the app for Vercel Serverless Functions
 module.exports = app;
 
