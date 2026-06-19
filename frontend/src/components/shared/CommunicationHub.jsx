@@ -16,19 +16,24 @@ export default function CommunicationHub({ onClose }) {
   }, []);
 
   useEffect(() => {
-    if (chatPartnerId) {
+    let interval;
+    if (chatPartnerId && activeTab === 'messages') {
       fetchMessages();
+      interval = setInterval(fetchMessages, 5000);
     } else {
       setMessages([]);
     }
-  }, [chatPartnerId]);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [chatPartnerId, activeTab]);
 
   const fetchChatPartners = async () => {
     try {
       const usersRes = await getUsers().catch(() => []);
       const users = Array.isArray(usersRes) ? usersRes : (usersRes.data || []);
       
-      const partners = users.map(u => ({ id: u.id, name: `${u.name} (${u.role})` }));
+      const partners = users.map(u => ({ id: u.id, name: u.name, role: u.role || 'user' }));
 
       setChatPartners(partners);
       if (partners.length > 0) {
@@ -80,7 +85,7 @@ export default function CommunicationHub({ onClose }) {
 
   return (
     <div style={{
-      position: 'fixed', top: 0, right: 0, width: '400px', height: '100vh',
+      position: 'fixed', top: 0, right: 0, bottom: 0, width: '100%', maxWidth: '400px',
       backgroundColor: '#fff', boxShadow: '-4px 0 15px rgba(0,0,0,0.1)',
       zIndex: 1000, display: 'flex', flexDirection: 'column'
     }}>
@@ -134,9 +139,17 @@ export default function CommunicationHub({ onClose }) {
                   onChange={(e) => setChatPartnerId(e.target.value)}
                   style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid #CBD5E1' }}
                 >
-                  {chatPartners.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
+                  {['landlord', 'caretaker', 'tenant', 'user'].map(role => {
+                    const group = chatPartners.filter(p => p.role === role);
+                    if (group.length === 0) return null;
+                    return (
+                      <optgroup key={role} label={role.charAt(0).toUpperCase() + role.slice(1) + 's'}>
+                        {group.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </optgroup>
+                    );
+                  })}
                 </select>
               </div>
             ) : (
@@ -145,18 +158,32 @@ export default function CommunicationHub({ onClose }) {
               </div>
             )}
 
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.5rem 0' }}>
-              {messages.map(m => (
-                <div key={m.id} style={{ 
-                  padding: '0.75rem', borderRadius: '8px', maxWidth: '80%',
-                  alignSelf: m.sender_id === parseInt(chatPartnerId) ? 'flex-start' : 'flex-end',
-                  backgroundColor: m.sender_id === parseInt(chatPartnerId) ? '#E2E8F0' : 'var(--color-primary)',
-                  color: m.sender_id === parseInt(chatPartnerId) ? '#1E293B' : '#fff'
-                }}>
-                  {m.content}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '1rem', backgroundColor: '#E5DDD5', overflowY: 'auto' }}>
+              {messages.map(m => {
+                const isPartner = m.sender_id === parseInt(chatPartnerId);
+                const timeStr = new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return (
+                  <div key={m.id} style={{ 
+                    padding: '0.5rem 0.75rem', 
+                    borderRadius: isPartner ? '0 8px 8px 8px' : '8px 0 8px 8px', 
+                    maxWidth: '85%',
+                    alignSelf: isPartner ? 'flex-start' : 'flex-end',
+                    backgroundColor: isPartner ? '#FFFFFF' : '#DCF8C6',
+                    color: '#111B21',
+                    boxShadow: '0 1px 0.5px rgba(11,20,26,0.13)',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}>
+                    <span style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>{m.content}</span>
+                    <span style={{ fontSize: '0.65rem', color: '#667781', alignSelf: 'flex-end', marginTop: '0.1rem', marginBottom: '-0.2rem' }}>{timeStr}</span>
+                  </div>
+                );
+              })}
+              {messages.length === 0 && chatPartnerId && (
+                <div style={{ alignSelf: 'center', backgroundColor: '#FFEECD', color: '#54656F', padding: '0.5rem 1rem', borderRadius: '16px', fontSize: '0.85rem', marginTop: '1rem', boxShadow: '0 1px 0.5px rgba(11,20,26,0.13)' }}>
+                  No messages yet. Send a message to start!
                 </div>
-              ))}
-              {messages.length === 0 && chatPartnerId && <p style={{ textAlign: 'center', color: '#94A3B8' }}>No messages yet.</p>}
+              )}
             </div>
             <div style={{ marginTop: '1rem', display: 'flex', gap: '0.5rem' }}>
               <input 
