@@ -88,7 +88,34 @@ app.get('/api/migrate-now', async (req, res) => {
             );
         `);
 
-        res.status(200).json({ success: true, message: "Migration applied successfully. Added approval_status to leases and created caretakers table." });
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS messages (
+                id SERIAL PRIMARY KEY,
+                sender_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                receiver_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                content TEXT NOT NULL,
+                read_status BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender_id);
+            CREATE INDEX IF NOT EXISTS idx_messages_receiver ON messages(receiver_id);
+        `);
+
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS notifications (
+                id SERIAL PRIMARY KEY,
+                user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                title VARCHAR(255) NOT NULL,
+                message TEXT NOT NULL,
+                is_read BOOLEAN DEFAULT FALSE,
+                related_entity_type VARCHAR(50),
+                related_entity_id INT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+        `);
+
+        res.status(200).json({ success: true, message: "All migrations applied: approval_status, caretakers, messages, notifications." });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
