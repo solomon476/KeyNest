@@ -115,7 +115,21 @@ app.get('/api/migrate-now', async (req, res) => {
             CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
         `);
 
-        res.status(200).json({ success: true, message: "All migrations applied: approval_status, caretakers, messages, notifications." });
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS meter_readings (
+                id SERIAL PRIMARY KEY,
+                unit_id INT NOT NULL REFERENCES units(id) ON DELETE CASCADE,
+                property_id INT NOT NULL REFERENCES properties(id) ON DELETE CASCADE,
+                caretaker_id INT REFERENCES caretakers(id) ON DELETE SET NULL,
+                reading_type VARCHAR(50) NOT NULL,
+                reading_value DECIMAL(10, 2) NOT NULL,
+                reading_date DATE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        res.status(200).json({ success: true, message: "All migrations applied: approval_status, caretakers, messages, notifications, meter_readings." });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
