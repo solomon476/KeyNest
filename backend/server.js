@@ -75,7 +75,20 @@ app.get('/api/migrate-now', async (req, res) => {
     const db = require('./config/db');
     try {
         await db.query(`ALTER TABLE leases ADD COLUMN IF NOT EXISTS approval_status VARCHAR(50) DEFAULT 'pending' CHECK (approval_status IN ('pending', 'approved', 'rejected'));`);
-        res.status(200).json({ success: true, message: "Migration applied successfully. Added approval_status to leases." });
+        
+        await db.query(`
+            CREATE TABLE IF NOT EXISTS caretakers (
+                id SERIAL PRIMARY KEY,
+                user_id INT UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                landlord_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                assigned_properties INT[],
+                permissions JSONB DEFAULT '{"can_view_rent_status": true, "can_view_total_cashflow": false, "can_approve_leases": true}',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+
+        res.status(200).json({ success: true, message: "Migration applied successfully. Added approval_status to leases and created caretakers table." });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
