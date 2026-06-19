@@ -73,7 +73,8 @@ export default function CommunicationHub({ onClose }) {
       setNewMessage('');
       fetchMessages();
     } catch (err) {
-      alert("Failed to send message: Recipient not found or database error.");
+      const detail = err.response?.data?.detail || err.response?.data?.error || err.message || 'Unknown error';
+      alert(`Failed to send message: ${detail}`);
     }
   };
 

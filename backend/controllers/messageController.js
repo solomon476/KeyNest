@@ -28,7 +28,7 @@ exports.sendMessage = async (req, res) => {
         res.status(201).json({ message: 'Message sent', data: message });
     } catch (err) {
         console.error('Error sending message:', err);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error', detail: err.message });
     }
 };
 
