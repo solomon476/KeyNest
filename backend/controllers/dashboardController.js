@@ -90,7 +90,11 @@ exports.getTenantStats = async (req, res) => {
 
         // Get lease info
         const leaseQuery = `
-            SELECT * FROM leases WHERE tenant_id = $1 AND status = 'active' LIMIT 1
+            SELECT l.* 
+            FROM leases l
+            JOIN tenants t ON l.tenant_id = t.id
+            WHERE RIGHT(t.phone_number, 9) = RIGHT((SELECT phone_number FROM users WHERE id = $1), 9)
+            AND l.status = 'active' LIMIT 1
         `;
         const leaseResult = await db.query(leaseQuery, [tenantId]);
         const lease = leaseResult.rows?.[0];

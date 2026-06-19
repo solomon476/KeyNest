@@ -25,9 +25,7 @@ export default function Maintenance() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const tenantId = user.id || 1;
-      await api.post('/maintenance', { tenantId, unitId: 1, issueDescription }); // unitId should ideally come from user's active lease
+      await api.post('/maintenance', { issueDescription });
       await fetchRequests();
       setShowForm(false);
       setIssueDescription('');

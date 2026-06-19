@@ -6,11 +6,13 @@ import MyUnit from '../components/tenant/MyUnit';
 import Maintenance from '../components/tenant/Maintenance';
 import Payments from '../components/shared/Payments';
 import SettingsView from '../components/shared/Settings';
+import CommunicationHub from '../components/shared/CommunicationHub';
 import api from '../services/api';
 
 export default function TenantDashboard({ onLogout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState('Overview');
+  const [showCommHub, setShowCommHub] = useState(false);
   const [stats, setStats] = useState(null);
   const navigate = useNavigate();
 
@@ -95,7 +97,10 @@ export default function TenantDashboard({ onLogout }) {
           </div>
           
           <div className="flex items-center header-actions">
-            <Bell size={24} color="#64748B" />
+            <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setShowCommHub(true)}>
+              <Bell size={24} color="#64748B" />
+              <span style={{ position: 'absolute', top: -2, right: -2, width: 10, height: 10, backgroundColor: 'var(--status-overdue)', borderRadius: '50%' }}></span>
+            </div>
             <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
               TN
             </div>
@@ -158,6 +163,7 @@ export default function TenantDashboard({ onLogout }) {
           )}
         </div>
       </main>
+      {showCommHub && <CommunicationHub onClose={() => setShowCommHub(false)} />}
     </div>
   );
 }

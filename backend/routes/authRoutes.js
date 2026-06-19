@@ -36,6 +36,33 @@ router.post('/register', async (req, res) => {
         const result = await db.query(query, values);
         const newUser = result.rows ? result.rows[0] : (Array.isArray(result) ? result[0] : result);
 
+        // If registering as a tenant, auto-create a tenant profile record
+        // This is crucial so the phone-number matching works immediately
+        if ((role || 'tenant') === 'tenant') {
+            try {
+                // Get a default landlord to satisfy NOT NULL constraint
+                const landlordRes = await db.query(`SELECT id FROM users WHERE role = 'landlord' LIMIT 1`);
+                const defaultLandlordId = (landlordRes.rows || [])[0]?.id || 1;
+
+                await db.query(
+                    `INSERT INTO tenants (user_id, first_name, last_name, phone_number, email, landlord_id)
+                     VALUES ($1, $2, $3, $4, $5, $6)
+                     ON CONFLICT (user_id) DO NOTHING`,
+                    [
+                        newUser.id,
+                        name.split(' ')[0],
+                        name.split(' ').slice(1).join(' ') || '',
+                        phoneNumber,
+                        email,
+                        defaultLandlordId
+                    ]
+                );
+            } catch (tenantErr) {
+                // Non-fatal: log but don't fail the registration
+                console.error('Auto tenant profile creation failed:', tenantErr.message);
+            }
+        }
+
         // Generate JWT
         const token = jwt.sign(
             { id: newUser.id, email: newUser.email, role: newUser.role },
