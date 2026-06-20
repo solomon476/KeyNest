@@ -42,6 +42,41 @@ exports.sendMessage = async (req, res) => {
     }
 };
 
+// Get chat contacts (users + latest message time + unread counts)
+exports.getChatContacts = async (req, res) => {
+    try {
+        const currentUserId = req.user.id;
+
+        const query = `
+            SELECT 
+                u.id, 
+                u.name, 
+                u.role,
+                (
+                    SELECT MAX(created_at) 
+                    FROM messages 
+                    WHERE (sender_id = $1 AND receiver_id = u.id) 
+                       OR (sender_id = u.id AND receiver_id = $1)
+                ) as last_message_time,
+                (
+                    SELECT COUNT(*) 
+                    FROM messages 
+                    WHERE sender_id = u.id AND receiver_id = $1 AND read_status = FALSE
+                ) as unread_count
+            FROM users u
+            WHERE u.id != $1
+            ORDER BY last_message_time DESC NULLS LAST, u.name ASC
+        `;
+        const result = await db.query(query, [currentUserId]);
+        const contacts = result.rows || result;
+
+        res.status(200).json({ data: contacts });
+    } catch (err) {
+        console.error('Error fetching chat contacts:', err);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
 // Get conversation with a specific user
 exports.getConversation = async (req, res) => {
     try {

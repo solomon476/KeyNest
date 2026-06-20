@@ -75,6 +75,11 @@ export const assignCaretaker = async (data) => {
 };
 
 // Messages
+export const getChatContacts = async () => {
+  const response = await api.get('/messages/contacts');
+  return response.data;
+};
+
 export const getConversation = async (userId) => {
   const response = await api.get(`/messages/${userId}`);
   return response.data;

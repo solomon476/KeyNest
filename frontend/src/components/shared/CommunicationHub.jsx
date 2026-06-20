@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getNotifications, markNotificationRead, getConversation, sendMessage, getUsers } from '../../services/api';
+import { getNotifications, markNotificationRead, getConversation, sendMessage, getChatContacts } from '../../services/api';
 import { Bell, MessageSquare, X, ArrowLeft } from 'lucide-react';
 
 export default function CommunicationHub({ onClose }) {
@@ -31,10 +31,16 @@ export default function CommunicationHub({ onClose }) {
 
   const fetchChatPartners = async () => {
     try {
-      const usersRes = await getUsers().catch(() => []);
+      const usersRes = await getChatContacts().catch(() => []);
       const users = Array.isArray(usersRes) ? usersRes : (usersRes.data || []);
       
-      const partners = users.map(u => ({ id: u.id, name: u.name, role: u.role || 'user' }));
+      const partners = users.map(u => ({ 
+        id: u.id, 
+        name: u.name, 
+        role: u.role || 'user',
+        unreadCount: parseInt(u.unread_count) || 0,
+        lastMessageTime: u.last_message_time
+      }));
 
       setChatPartners(partners);
     } catch (err) {
@@ -145,9 +151,15 @@ export default function CommunicationHub({ onClose }) {
                       <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'var(--color-primary)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '1.2rem' }}>
                          {p.name.charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                         <div style={{ fontWeight: 600, fontSize: '1rem', color: '#1E293B' }}>{p.name}</div>
-                         <div style={{ fontSize: '0.85rem', color: '#64748B', textTransform: 'capitalize' }}>{p.role}</div>
+                      <div style={{ flex: 1 }}>
+                         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.125rem' }}>
+                           <div style={{ fontWeight: 600, fontSize: '1rem', color: '#1E293B' }}>{p.name}</div>
+                           {p.lastMessageTime && <div style={{ fontSize: '0.75rem', color: p.unreadCount > 0 ? '#25D366' : '#94A3B8' }}>{new Date(p.lastMessageTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>}
+                         </div>
+                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                           <div style={{ fontSize: '0.85rem', color: '#64748B', textTransform: 'capitalize' }}>{p.role}</div>
+                           {p.unreadCount > 0 && <div style={{ width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#25D366', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold' }}>{p.unreadCount}</div>}
+                         </div>
                       </div>
                    </div>
                 ))}

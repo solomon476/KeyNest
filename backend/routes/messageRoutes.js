@@ -3,6 +3,7 @@ const router = express.Router();
 const messageController = require('../controllers/messageController');
 
 router.post('/', messageController.sendMessage);
+router.get('/contacts', messageController.getChatContacts);
 router.get('/:userId', messageController.getConversation);
 router.patch('/:id/read', messageController.markAsRead);
 
