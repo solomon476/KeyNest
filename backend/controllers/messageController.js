@@ -25,6 +25,16 @@ exports.sendMessage = async (req, res) => {
         const result = await db.query(query, [senderId, receiverIdInt, content]);
         const message = result.rows ? result.rows[0] : (Array.isArray(result) ? result[0] : result);
 
+        // Fetch sender's name for the notification
+        const senderCheck = await db.query('SELECT name FROM users WHERE id = $1', [senderId]);
+        const senderName = (senderCheck.rows && senderCheck.rows.length > 0) ? senderCheck.rows[0].name : 'Someone';
+
+        // Create a notification for the receiver
+        await db.query(
+            `INSERT INTO notifications (user_id, title, message) VALUES ($1, $2, $3)`,
+            [receiverIdInt, `New Message from ${senderName}`, content.substring(0, 50) + (content.length > 50 ? '...' : '')]
+        );
+
         res.status(201).json({ message: 'Message sent', data: message });
     } catch (err) {
         console.error('Error sending message:', err);
