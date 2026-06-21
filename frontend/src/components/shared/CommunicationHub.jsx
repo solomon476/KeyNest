@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getNotifications, markNotificationRead, getConversation, sendMessage, getChatContacts } from '../../services/api';
-import { Bell, MessageSquare, X, ArrowLeft } from 'lucide-react';
+import { Bell, MessageSquare, X, ArrowLeft, Check, CheckCheck } from 'lucide-react';
 
 export default function CommunicationHub({ onClose }) {
   const [activeTab, setActiveTab] = useState('notifications');
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (msg) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(''), 3000);
+  };
   const [notifications, setNotifications] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -61,6 +67,8 @@ export default function CommunicationHub({ onClose }) {
     try {
       const data = await getConversation(chatPartnerId);
       setMessages(data.data || []);
+      // Refresh chat partners to clear unread counts after reading messages
+      fetchChatPartners();
     } catch (err) {
       console.error('Failed to fetch messages', err);
     }
@@ -81,6 +89,7 @@ export default function CommunicationHub({ onClose }) {
       await sendMessage({ receiverId: parseInt(chatPartnerId), content: newMessage });
       setNewMessage('');
       fetchMessages();
+      showToast('Message sent');
     } catch (err) {
       const detail = err.response?.data?.detail || err.response?.data?.error || err.message || 'Unknown error';
       alert(`Failed to send message: ${detail}`);
@@ -166,7 +175,15 @@ export default function CommunicationHub({ onClose }) {
                 {chatPartners.length === 0 && <div style={{ padding: '2rem', textAlign: 'center', color: '#64748B' }}>No active users available to message.</div>}
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+                {toastMessage && (
+                  <div style={{
+                    position: 'absolute', top: '70px', left: '50%', transform: 'translateX(-50%)',
+                    backgroundColor: 'rgba(0,0,0,0.6)', color: '#fff', padding: '0.5rem 1rem', borderRadius: '20px', zIndex: 10, fontSize: '0.85rem'
+                  }}>
+                    {toastMessage}
+                  </div>
+                )}
                 {/* Chat Header */}
                 <div style={{ padding: '0.75rem 1rem', backgroundColor: '#F0F2F5', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                    <button onClick={() => setChatView('list')} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '0.5rem' }}>
@@ -199,7 +216,12 @@ export default function CommunicationHub({ onClose }) {
                         flexDirection: 'column'
                       }}>
                         <span style={{ fontSize: '0.95rem', lineHeight: '1.4' }}>{m.content}</span>
-                        <span style={{ fontSize: '0.65rem', color: '#667781', alignSelf: 'flex-end', marginTop: '0.1rem', marginBottom: '-0.2rem' }}>{timeStr}</span>
+                        <span style={{ fontSize: '0.65rem', color: '#667781', alignSelf: 'flex-end', marginTop: '0.1rem', marginBottom: '-0.2rem', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                          {timeStr}
+                          {!isPartner && (
+                            m.read_status ? <CheckCheck size={14} color="#53bdeb" /> : <Check size={14} color="#667781" />
+                          )}
+                        </span>
                       </div>
                     );
                   })}
